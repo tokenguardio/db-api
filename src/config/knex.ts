@@ -1,4 +1,3 @@
-// src/database.ts
 import knex from "knex";
 
 const pg = knex({
