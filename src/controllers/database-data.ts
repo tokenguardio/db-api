@@ -52,10 +52,14 @@ export const getTableColumns = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { tableName } = req.params;
+  const { schemaName, tableName } = req.params;
 
   if (!tableName) {
     return res.status(400).send("Table name is required");
+  }
+
+  if (!schemaName) {
+    return res.status(400).send("Schema name is required");
   }
 
   try {
@@ -63,16 +67,19 @@ export const getTableColumns = async (
       `
       SELECT column_name, data_type, is_nullable
       FROM information_schema.columns
-      WHERE table_name = ?
+      WHERE table_name = ? AND table_schema = ?
     `,
-      [tableName]
+      [tableName, schemaName]
     );
 
     return res.status(200).json(columns.rows);
   } catch (error) {
-    console.error(`Error fetching column data for table ${tableName}:`, error);
+    console.error(
+      `Error fetching column data for table ${schemaName}.${tableName}:`,
+      error
+    );
     return res
       .status(500)
-      .send(`Error fetching column data for table ${tableName}`);
+      .send(`Error fetching column data for table ${schemaName}.${tableName}`);
   }
 };

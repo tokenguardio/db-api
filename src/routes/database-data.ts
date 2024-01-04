@@ -1,5 +1,7 @@
 import { Router } from "express";
 import * as apiController from "../controllers/database-data";
+import { validate } from "../middleware/joiValidate";
+import { getTableColumnsValidation } from "../validation/databaseDataValidations";
 
 const router = Router();
 
@@ -74,11 +76,17 @@ router.get("/tables", apiController.getAllTables);
 
 /**
  * @openapi
- * /tables/{tableName}/columns:
+ * /tables/{schemaName}/{tableName}/columns:
  *   get:
- *     summary: Retrieve columns of a table
- *     description: Retrieves a list of all columns from the specified table.
+ *     summary: Retrieve columns of a table in a specific schema
+ *     description: Retrieves a list of all columns from the specified table within a given schema.
  *     parameters:
+ *       - in: path
+ *         name: schemaName
+ *         required: true
+ *         description: Name of the schema the table belongs to.
+ *         schema:
+ *           type: string
  *       - in: path
  *         name: tableName
  *         required: true
@@ -87,7 +95,7 @@ router.get("/tables", apiController.getAllTables);
  *           type: string
  *     responses:
  *       200:
- *         description: Successfully retrieved all columns from the specified table.
+ *         description: Successfully retrieved all columns from the specified table in the given schema.
  *         content:
  *           application/json:
  *             schema:
@@ -105,10 +113,14 @@ router.get("/tables", apiController.getAllTables);
  *                       is_nullable:
  *                         type: string
  *       400:
- *         description: Table name is required.
+ *         description: Schema name and Table name are required.
  *       500:
  *         description: Server error.
  */
-router.get("/tables/:tableName/columns", apiController.getTableColumns);
+router.get(
+  "/tables/:schemaName/:tableName/columns",
+  validate(getTableColumnsValidation),
+  apiController.getTableColumns
+);
 
 export default router;
