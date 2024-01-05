@@ -54,14 +54,6 @@ export const getTableColumns = async (
 ): Promise<Response> => {
   const { schemaName, tableName } = req.params;
 
-  if (!tableName) {
-    return res.status(400).send("Table name is required");
-  }
-
-  if (!schemaName) {
-    return res.status(400).send("Schema name is required");
-  }
-
   try {
     const columns = await pg.raw(
       `
