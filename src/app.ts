@@ -6,6 +6,7 @@ import { ENVIRONMENT } from "./utils/secret";
 import swaggerDefinition from "./utils/swagger";
 import apiRoutes from "./routes/api";
 import growthIndexRoutes from "./routes/growth-index";
+import queryRoutes from "./routes/query";
 import logger from "./utils/logger";
 
 const prod = ENVIRONMENT === "production"; // Anything else is treated as 'dev'
@@ -37,5 +38,6 @@ app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Use routes
 app.use(apiRoutes);
 app.use(growthIndexRoutes);
+app.use(queryRoutes);
 
 export default app;
