@@ -1,5 +1,10 @@
 import { Router } from "express";
 import * as apiController from "../controllers/query";
+import { validate } from "../middleware/joiValidate";
+import {
+  saveQueryValidation,
+  executeQueryValidation,
+} from "../validation/queryValidations";
 
 const router = Router();
 
@@ -60,7 +65,11 @@ const router = Router();
  *       500:
  *         description: Server error or error saving the query.
  */
-router.post("/save-query", apiController.saveQuery);
+router.post(
+  "/save-query",
+  validate(saveQueryValidation),
+  apiController.saveQuery
+);
 
 /**
  * @openapi
@@ -121,6 +130,10 @@ router.post("/save-query", apiController.saveQuery);
  *       500:
  *         description: Server error or error executing the query.
  */
-router.post("/execute-query", apiController.executeQuery);
+router.post(
+  "/execute-query",
+  validate(executeQueryValidation),
+  apiController.executeQuery
+);
 
 export default router;

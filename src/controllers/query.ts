@@ -2,47 +2,20 @@ import { Request, Response } from "express";
 import { Parser } from "node-sql-parser";
 import pg from "../config/knex";
 
-// Define the structure of a query parameter
-interface QueryParameter {
-  name: string;
-  type: string;
-}
-
-export const SQLDataTypes: string[] = [
-  "integer",
-  "smallint",
-  "tinyint",
-  "mediumint",
-  "bigint",
-  "decimal",
-  "numeric",
-  "float",
-  "real",
-  "double",
-  "bit",
-  "char",
-  "varchar",
-  "binary",
-  "varbinary",
-  "blob",
-  "text",
-  "enum",
-  "set",
-  "date",
-  "datetime",
-  "timestamp",
-  "time",
-  "year",
-];
-
-// Define the expected structure for parameters
-const isValidParameter = (param: QueryParameter): boolean => {
-  return (
-    param &&
-    typeof param === "object" &&
-    typeof param.name === "string" &&
-    SQLDataTypes.includes(param.type)
-  );
+const isValueOfType = (value: any, type: string): boolean => {
+  switch (type) {
+    case "number":
+      // Check if the value is a number or can be converted to a number
+      const num = Number(value);
+      return !isNaN(num) && isFinite(num);
+    case "string":
+      return typeof value === "string";
+    case "date":
+      // Ensure the value is a string and can be converted to a valid date
+      return typeof value === "string" && !isNaN(Date.parse(value));
+    default:
+      return false;
+  }
 };
 
 export const saveQuery = async (
@@ -54,42 +27,25 @@ export const saveQuery = async (
   // Initialize the SQL parser
   const parser = new Parser();
 
-  // Validate the request body
-  const isValidQuery = typeof query === "string";
-  const areParametersValid =
-    Array.isArray(parameters) &&
-    parameters.every((param: QueryParameter) => isValidParameter(param));
-
-  if (!isValidQuery || !areParametersValid) {
-    return res
-      .status(400)
-      .send(
-        "Invalid request body. Ensure query is a string and parameters are an array of valid objects."
-      );
-  }
-
-  // Validate the SQL syntax
   try {
-    parser.parse(query); // Check the SQL syntax
-  } catch (error) {
-    console.error("Error parsing the query:", error);
-    return res.status(400).send(`SQL Syntax Error: ${error.message}`);
-  }
+    // Check the SQL syntax
+    parser.parse(query);
 
-  try {
     // Serialize the parameters to store as JSON
     const serializedParameters = JSON.stringify(parameters);
 
+    // Insert the query and parameters into the database
     const [id] = await pg("queries")
       .insert({ query, parameters: serializedParameters })
       .returning("id");
 
+    // Return the ID of the saved query
     return res.status(201).json({ id, message: "Query saved successfully" });
   } catch (error) {
-    console.error("Error saving the query:", error);
+    console.error("Error:", error);
     return res
-      .status(500)
-      .send("An internal error occurred while saving the query.");
+      .status(error instanceof SyntaxError ? 400 : 500)
+      .send(`Error: ${error.message}`);
   }
 };
 
@@ -104,10 +60,6 @@ export const executeQuery = async (
 ): Promise<Response> => {
   const { id, queryParams } = req.body;
 
-  if (typeof id !== "number" || !Array.isArray(queryParams)) {
-    return res.status(400).send("Invalid request body");
-  }
-
   try {
     const savedQuery = await pg("queries").where({ id }).first();
 
@@ -120,20 +72,20 @@ export const executeQuery = async (
         ? JSON.parse(savedQuery.parameters)
         : savedQuery.parameters;
 
-    // Validate that the provided queryParams match the saved parameters in number and order
-    if (
-      queryParams.length !== savedParameters.length ||
-      !queryParams.every(
-        (param, index) => savedParameters[index].name === param.name
-      )
-    ) {
-      return res.status(400).send("Invalid query parameters");
+    // Validate parameter types
+    for (const param of savedParameters) {
+      const queryParam = queryParams.find(
+        (p: SavedParameter) => p.name === param.name
+      );
+      if (!queryParam || !isValueOfType(queryParam.value, param.type)) {
+        return res.status(400).send(`Invalid type for parameter ${param.name}`);
+      }
     }
 
     // Extract the values from queryParams in the order of the saved parameters
     const values = savedParameters.map(
       (param: SavedParameter) =>
-        queryParams.find((p) => p.name === param.name).value
+        queryParams.find((p: SavedParameter) => p.name === param.name).value
     );
 
     const result = await pg.raw(savedQuery.query, values);
