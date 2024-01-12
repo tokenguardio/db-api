@@ -9,8 +9,13 @@ const swaggerDefinition = {
   servers: [
     {
       url: "http://localhost:3000",
-      description: "Development server",
+      description: "Localhost development server",
     },
+    {
+      url: "https://db-api.dev.tokenguard.io",
+      description: "Dev environment server",
+    },
+    // jrojek: todo. Just use host on which the server is visible or env var to substitute the value here
   ],
 };
 
