@@ -1,3 +1,4 @@
+import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import swaggerUi from "swagger-ui-express";
@@ -31,6 +32,9 @@ app.set("port", process.env.PORT || 3000);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(helmet());
+
+app.use(cors());
+app.options("*", cors());
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

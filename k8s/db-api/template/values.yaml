@@ -1,0 +1,43 @@
+# Default values for db-api.
+ecrRegistry: ~
+eksEnvironment: ~
+
+imagePullSecrets: ~
+
+dbapi:
+  deployment:
+    name: db-api
+    image:
+      repository: ""
+      pullPolicy: Always
+      tag: ""
+    replicaCount: 1
+    env: 
+      PORT: "8082"
+      DB_SSL: "true"
+      
+    resources: 
+      requests:
+        memory: "128Mi" 
+        cpu: "100m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"   
+  service: 
+    name: db-api
+  configmap:
+    name: db-api
+      
+secrets: 
+  name: db-api-secrets
+
+ingressExternal:
+  enabled: false
+  name: db-api-ingress-external
+  rules: []
+
+ingressInternal:
+  enabled: false
+  name: db-api-ingress-internal
+  rules: []
+
