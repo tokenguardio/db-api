@@ -4,11 +4,14 @@ import helmet from "helmet";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import { ENVIRONMENT } from "./utils/secret";
+import { Request, Response, NextFunction } from "express";
 import swaggerDefinition from "./utils/swagger";
 import apiRoutes from "./routes/api";
 import growthIndexRoutes from "./routes/growth-index";
+import queryRoutes from "./routes/query";
 import databaseDataRoutes from "./routes/database-data";
 import logger from "./utils/logger";
+import { ApiError } from "./middleware/joiValidate";
 
 const prod = ENVIRONMENT === "production"; // Anything else is treated as 'dev'
 if (prod) {
@@ -42,6 +45,19 @@ app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Use routes
 app.use(apiRoutes);
 app.use(growthIndexRoutes);
+app.use(queryRoutes);
 app.use(databaseDataRoutes);
+
+app.use((err: ApiError, req: Request, res: Response, next: NextFunction) => {
+  const statusCode = err.statusCode || 500;
+  const message = err.isOperational
+    ? err.message
+    : "An unexpected error occurred";
+  return res.status(statusCode).send({
+    status: "error",
+    statusCode,
+    message,
+  });
+});
 
 export default app;

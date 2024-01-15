@@ -8,25 +8,19 @@ interface ValidSchema {
   body?: any;
 }
 
-class ApiError extends Error {
+export class ApiError extends Error {
   statusCode: number;
   isOperational: boolean;
 
   constructor(
     statusCode: number,
     message: string,
-    isOperational: boolean = true,
-    stack: string = ""
+    isOperational: boolean = true
   ) {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = isOperational;
-
-    if (stack) {
-      this.stack = stack;
-    } else {
-      Error.captureStackTrace(this, this.constructor);
-    }
+    Error.captureStackTrace(this, this.constructor);
   }
 }
 
@@ -79,14 +73,27 @@ const formatError = (error: any) => {
 export const validate =
   (schema: ValidSchema) =>
   (req: Request, res: Response, next: NextFunction) => {
-    const validSchema = getValidSchema(schema);
-    const object = getObjectToValidate(req, validSchema);
-    const { value, error } = validateSchema(validSchema, object);
+    try {
+      const validSchema = getValidSchema(schema);
+      const object = getObjectToValidate(req, validSchema);
+      const { value, error } = validateSchema(validSchema, object);
 
-    if (error) {
-      const errorMessage = formatError(error);
-      return next(new ApiError(httpStatus.BAD_REQUEST, errorMessage));
+      if (error) {
+        const errorMessage = formatError(error);
+        throw new ApiError(httpStatus.BAD_REQUEST, errorMessage);
+      }
+      Object.assign(req, value);
+      return next();
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return next(error);
+      }
+      // For other types of errors, you might want to log them or handle them differently
+      return next(
+        new ApiError(
+          httpStatus.INTERNAL_SERVER_ERROR,
+          "An unexpected error occurred"
+        )
+      );
     }
-    Object.assign(req, value);
-    return next();
   };
