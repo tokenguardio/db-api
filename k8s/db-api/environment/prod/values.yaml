@@ -1,0 +1,44 @@
+# values for db-api dev environment.
+ecrRegistry: ~
+eksEnvironment: tokenguard-prod
+
+imagePullSecrets: ~
+
+ingressExternal:
+  enabled: false
+
+ingressInternal:
+  enabled: true
+  name: db-api-ingress-internal
+  rules:
+    - host: db-api.prod.tokenguard.io       
+      http:
+        paths:        
+        - backend:
+            service:
+              name: db-api
+              port:
+                number: 8082
+          path: /
+          pathType: Prefix
+
+dbapi:
+  deployment:
+    image:
+      repository: "tokenguard-prod-db-api"
+      pullPolicy: Always
+      tag: "latest"
+    replicaCount: 1
+    env: 
+      NODE_ENV: "production"
+      DB_PORT: "5432"
+      DB_NAME: "crosschain"
+      DB_SCHEMA: "public"
+    resources: 
+      requests:
+        memory: "256Mi" 
+        cpu: "200m"
+      limits:
+        memory: "2Gi"
+        cpu: "2000m"   
+

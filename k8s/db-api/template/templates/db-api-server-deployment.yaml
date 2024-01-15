@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Values.dbapi.deployment.name }}
+  name: {{ .Values.dbapi.deployment.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.dbapi.deployment.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.dbapi.deployment.name }}
+    spec:
+      containers:
+        - name: {{ .Values.dbapi.deployment.name }}
+          image: "{{ .Values.ecrRegistry }}/{{ .Values.dbapi.deployment.image.repository }}:{{ .Values.dbapi.deployment.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+              name: server-port          
+          env:
+            - name: PORT
+              value: {{ .Values.dbapi.deployment.env.PORT | quote }}                  
+            - name: NODE_ENV
+              value: {{ .Values.dbapi.deployment.env.NODE_ENV }}
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: postgres-username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: postgres-password   
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: postgres-host 
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: crosschain
+            - name: DB_SCHEMA
+              value: growth_index
+            - name: DB_SSL
+              value: "true"
+          resources:
+{{ toYaml .Values.dbapi.deployment.resources | indent 12 }}              
+          volumeMounts:                           
+      volumes:
