@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Parser } from "node-sql-parser";
-import pg from "../config/knex";
+import pgInstances from "../config/knex";
 
 const isValueOfType = (value: any, type: string): boolean => {
   switch (type) {
@@ -22,7 +22,12 @@ export const saveQuery = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { query, parameters } = req.body;
+  const { query, database, parameters } = req.body;
+
+  // Check if the specified database exists in pgInstances
+  if (!pgInstances[database]) {
+    return res.status(400).send("Specified database is not available");
+  }
 
   // Initialize the SQL parser
   const parser = new Parser();
@@ -35,8 +40,8 @@ export const saveQuery = async (
     const serializedParameters = JSON.stringify(parameters);
 
     // Insert the query and parameters into the database
-    const [id] = await pg("queries")
-      .insert({ query, parameters: serializedParameters })
+    const [id] = await pgInstances["local"]("queries")
+      .insert({ query, database, parameters: serializedParameters })
       .returning("id");
 
     // Return the ID of the saved query
@@ -61,7 +66,9 @@ export const executeQuery = async (
   const { id, queryParams } = req.body;
 
   try {
-    const savedQuery = await pg("queries").where({ id }).first();
+    const savedQuery = await pgInstances["local"]("queries")
+      .where({ id })
+      .first();
 
     if (!savedQuery) {
       return res.status(404).send("Query not found");
@@ -88,7 +95,10 @@ export const executeQuery = async (
         queryParams.find((p: SavedParameter) => p.name === param.name).value
     );
 
-    const result = await pg.raw(savedQuery.query, values);
+    const result = await pgInstances[savedQuery.database].raw(
+      savedQuery.query,
+      values
+    );
 
     return res.status(200).json({ data: result.rows });
   } catch (error) {

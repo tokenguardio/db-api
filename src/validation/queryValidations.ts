@@ -15,7 +15,8 @@ const queryParameterSchema = Joi.object({
 export const saveQueryValidation: Validation = {
   body: Joi.object({
     query: Joi.string().required(),
-    parameters: Joi.array().items(queryParameterSchema).required(),
+    database: Joi.string().required(),
+    parameters: Joi.array().items(queryParameterSchema).optional(),
   }),
 };
 
@@ -31,6 +32,6 @@ const executeQueryParamSchema = Joi.object({
 export const executeQueryValidation: Validation = {
   body: Joi.object({
     id: Joi.number().required(),
-    queryParams: Joi.array().items(executeQueryParamSchema).required(),
+    queryParams: Joi.array().items(executeQueryParamSchema).optional(),
   }),
 };

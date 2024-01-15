@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import pg from "../config/knex";
+import pgInstances from "../config/knex";
 
 export enum ChainName {
   AlephZero = "aleph-zero",
@@ -46,10 +46,14 @@ export const getGrowthIndex = async (
     startDate.setDate(startDate.getDate() - Number(daysAgo));
 
     // Construct and execute the query
-    const data = await pg(tableName)
-      .select(pg.raw(`date_trunc('${interval}', "${dateColumn}") as interval`))
+    const data = await pgInstances["crosschain"](tableName)
       .select(
-        pg.raw(
+        pgInstances["crosschain"].raw(
+          `date_trunc('${interval}', "${dateColumn}") as interval`
+        )
+      )
+      .select(
+        pgInstances["crosschain"].raw(
           `${aggregateFunction}(DISTINCT "${aggregateColumn}") as aggregate`
         )
       )
@@ -83,7 +87,7 @@ export async function getGrowthIndexHistorical(
 
   try {
     // Query the database
-    const data = await pg(tableName as string)
+    const data = await pgInstances["crosschain"](tableName as string)
       .select([...columnArray, dateColumn as string, "chain"])
       .where(dateColumn as string, ">=", startDate)
       .whereIn("chain", chainsArray)
@@ -121,7 +125,7 @@ export async function getLatestGrowthIndexData(
 
   try {
     // Subquery to get the latest date for each chain
-    const latestDatesSubquery = pg(tableName as string)
+    const latestDatesSubquery = pgInstances["crosschain"](tableName as string)
       .select("chain")
       .max(dateColumn as string, { as: "latest_date" })
       .whereIn("chain", chainsArray)
@@ -129,7 +133,7 @@ export async function getLatestGrowthIndexData(
       .as("latest_dates");
 
     // Main query to get the full row data for the latest entries
-    const rawData = await pg(tableName as string)
+    const rawData = await pgInstances["crosschain"](tableName as string)
       .select([
         ...columnArray,
         `${tableName}.${dateColumn} as week_of_record`,

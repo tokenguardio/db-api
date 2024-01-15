@@ -39,9 +39,10 @@ const router = Router();
  *                       example: "integer"
  *             example:
  *               query: "SELECT * FROM orders WHERE customer_id = ? AND order_date BETWEEN ? AND ?"
+ *               database: "local"
  *               parameters:
  *                 - name: "customer_id"
- *                   type: "integer"
+ *                   type: "number"
  *                 - name: "start_date"
  *                   type: "date"
  *                 - name: "end_date"
