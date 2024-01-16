@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Parser } from "node-sql-parser";
+// import { Parser } from "node-sql-parser";
 import pgInstances from "../config/knex";
 
 const isValueOfType = (value: any, type: string): boolean => {
@@ -22,26 +22,31 @@ export const saveQuery = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { query, database, parameters } = req.body;
+  const { query, database, parameters = [] } = req.body; // Default to an empty array if not provided
 
   // Check if the specified database exists in pgInstances
   if (!pgInstances[database]) {
     return res.status(400).send("Specified database is not available");
   }
 
-  // Initialize the SQL parser
-  const parser = new Parser();
+  const decodedQuery = Buffer.from(query, "base64").toString("utf8");
 
   try {
-    // Check the SQL syntax
-    parser.parse(query);
+    // Initialize the SQL parser
+    // const parser = new Parser();
+    // Check the SQL syntax - doesn't work for more complicated but correct queries
+    // parser.parse(decodedQuery);
 
-    // Serialize the parameters to store as JSON
+    // Since parameters defaults to [], we can safely serialize it directly
     const serializedParameters = JSON.stringify(parameters);
 
     // Insert the query and parameters into the database
     const [id] = await pgInstances["local"]("queries")
-      .insert({ query, database, parameters: serializedParameters })
+      .insert({
+        query: decodedQuery,
+        database,
+        parameters: serializedParameters, // parameters will be an empty array if not provided
+      })
       .returning("id");
 
     // Return the ID of the saved query
@@ -63,7 +68,7 @@ export const executeQuery = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { id, queryParams } = req.body;
+  const { id, queryParams = [] } = req.body;
 
   try {
     const savedQuery = await pgInstances["local"]("queries")
@@ -74,33 +79,43 @@ export const executeQuery = async (
       return res.status(404).send("Query not found");
     }
 
-    const savedParameters =
-      typeof savedQuery.parameters === "string"
-        ? JSON.parse(savedQuery.parameters)
-        : savedQuery.parameters;
+    const savedParameters = savedQuery.parameters;
 
-    // Validate parameter types
-    for (const param of savedParameters) {
-      const queryParam = queryParams.find(
-        (p: SavedParameter) => p.name === param.name
-      );
-      if (!queryParam || !isValueOfType(queryParam.value, param.type)) {
-        return res.status(400).send(`Invalid type for parameter ${param.name}`);
+    // If there are saved parameters, validate the types against queryParams
+    if (savedParameters.length > 0) {
+      for (const param of savedParameters) {
+        const queryParam = queryParams.find(
+          (p: SavedParameter) => p.name === param.name
+        );
+        // Check if the parameter is required (not null) and if it has the correct type
+        if (!queryParam || !isValueOfType(queryParam.value, param.type)) {
+          return res
+            .status(400)
+            .send(`Invalid type for parameter ${param.name}`);
+        }
       }
+
+      // Extract the values from queryParams in the order of the saved parameters
+      const values = savedParameters.map(
+        (param: SavedParameter) =>
+          queryParams.find((p: SavedParameter) => p.name === param.name).value
+      );
+
+      // Execute the saved query with the provided parameters
+      const result = await pgInstances[savedQuery.database].raw(
+        savedQuery.query,
+        values
+      );
+
+      return res.status(200).json({ data: result.rows });
+    } else {
+      // Execute the saved query without parameters
+      const result = await pgInstances[savedQuery.database].raw(
+        savedQuery.query
+      );
+
+      return res.status(200).json({ data: result.rows });
     }
-
-    // Extract the values from queryParams in the order of the saved parameters
-    const values = savedParameters.map(
-      (param: SavedParameter) =>
-        queryParams.find((p: SavedParameter) => p.name === param.name).value
-    );
-
-    const result = await pgInstances[savedQuery.database].raw(
-      savedQuery.query,
-      values
-    );
-
-    return res.status(200).json({ data: result.rows });
   } catch (error) {
     console.error("Error executing the query:", error);
     return res.status(500).send("Error executing the query");
