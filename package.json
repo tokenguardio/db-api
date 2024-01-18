@@ -8,11 +8,12 @@
   },
   "scripts": {
     "build-ts": "tsc",
-    "build": "npm run build-ts && npm run lint",
+    "clean-dist": "rimraf ./dist",
+    "build": "npm run clean-dist && npm run build-ts && npm run lint",
     "debug": "npm run build && npm run watch-debug",
     "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --fix",
-    "serve-debug": "nodemon --inspect dist/server.js",
-    "serve": "node dist/server.js",
+    "serve-debug": "nodemon --inspect dist/src/server.js",
+    "serve": "node dist/src/server.js",
     "start": "npm run serve",
     "test": "jest --forceExit --coverage --verbose --passWithNoTests --detectOpenHandles",
     "watch-debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run serve-debug\"",
@@ -50,7 +51,10 @@
     "@typescript-eslint/parser": "6.15.0",
     "concurrently": "^8.2.2",
     "eslint": "8.56.0",
+    "kanel": "^3.8.2",
+    "kanel-knex": "^2.3.3",
     "nodemon": "^3.0.2",
+    "rimraf": "^5.0.5",
     "ts-node": "10.9.2",
     "typescript": "5.3.3"
   }

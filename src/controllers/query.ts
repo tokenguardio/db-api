@@ -1,6 +1,9 @@
-import { Request, Response } from "express";
 // import { Parser } from "node-sql-parser";
-import pgInstances from "../config/knex";
+import { Request, Response } from "express";
+import knex from "knex";
+import internalKnexConfig from "../../knexfile";
+import externalKnexConfigs from "../../knexfile-external";
+import { Parameter } from "../types/queries";
 
 const isValueOfType = (value: any, type: string): boolean => {
   switch (type) {
@@ -25,7 +28,7 @@ export const saveQuery = async (
   const { query, database, parameters = [] } = req.body; // Default to an empty array if not provided
 
   // Check if the specified database exists in pgInstances
-  if (!pgInstances[database]) {
+  if (!externalKnexConfigs[database]) {
     return res.status(400).send("Specified database is not available");
   }
 
@@ -41,11 +44,11 @@ export const saveQuery = async (
     const serializedParameters = JSON.stringify(parameters);
 
     // Insert the query and parameters into the database
-    const [id] = await pgInstances["local"]("queries")
+    const [id] = await knex(internalKnexConfig)("queries")
       .insert({
         query: decodedQuery,
         database,
-        parameters: serializedParameters, // parameters will be an empty array if not provided
+        parameters: serializedParameters as any, // parameters will be an empty array if not provided
       })
       .returning("id");
 
@@ -59,11 +62,6 @@ export const saveQuery = async (
   }
 };
 
-interface SavedParameter {
-  name: string;
-  type: string;
-}
-
 export const executeQuery = async (
   req: Request,
   res: Response
@@ -71,7 +69,7 @@ export const executeQuery = async (
   const { id, queryParams = [] } = req.body;
 
   try {
-    const savedQuery = await pgInstances["local"]("queries")
+    const savedQuery = await knex(internalKnexConfig)("queries")
       .where({ id })
       .first();
 
@@ -85,7 +83,7 @@ export const executeQuery = async (
     if (savedParameters.length > 0) {
       for (const param of savedParameters) {
         const queryParam = queryParams.find(
-          (p: SavedParameter) => p.name === param.name
+          (p: Parameter) => p.name === param.name
         );
         // Check if the parameter is required (not null) and if it has the correct type
         if (!queryParam || !isValueOfType(queryParam.value, param.type)) {
@@ -97,12 +95,12 @@ export const executeQuery = async (
 
       // Extract the values from queryParams in the order of the saved parameters
       const values = savedParameters.map(
-        (param: SavedParameter) =>
-          queryParams.find((p: SavedParameter) => p.name === param.name).value
+        (param: Parameter) =>
+          queryParams.find((p: Parameter) => p.name === param.name).value
       );
 
       // Execute the saved query with the provided parameters
-      const result = await pgInstances[savedQuery.database].raw(
+      const result = await knex(externalKnexConfigs[savedQuery.database]).raw(
         savedQuery.query,
         values
       );
@@ -110,7 +108,7 @@ export const executeQuery = async (
       return res.status(200).json({ data: result.rows });
     } else {
       // Execute the saved query without parameters
-      const result = await pgInstances[savedQuery.database].raw(
+      const result = await knex(externalKnexConfigs[savedQuery.database]).raw(
         savedQuery.query
       );
 

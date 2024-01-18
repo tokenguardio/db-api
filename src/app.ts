@@ -6,7 +6,6 @@ import swaggerJsdoc from "swagger-jsdoc";
 import { ENVIRONMENT } from "./utils/secret";
 import { Request, Response, NextFunction } from "express";
 import swaggerDefinition from "./utils/swagger";
-import apiRoutes from "./routes/api";
 import growthIndexRoutes from "./routes/growth-index";
 import queryRoutes from "./routes/query";
 import databaseDataRoutes from "./routes/database-data";
@@ -43,7 +42,6 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Use routes
-app.use(apiRoutes);
 app.use(growthIndexRoutes);
 app.use(queryRoutes);
 app.use(databaseDataRoutes);
