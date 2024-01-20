@@ -52,8 +52,6 @@ app.use((err: ApiError, req: Request, res: Response, next: NextFunction) => {
     ? err.message
     : "An unexpected error occurred";
   return res.status(statusCode).send({
-    status: "error",
-    statusCode,
     message,
   });
 });
