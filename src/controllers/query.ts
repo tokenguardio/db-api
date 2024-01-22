@@ -18,13 +18,15 @@ export const saveQuery = async (
   }
 
   try {
+    const decodedQuery = Buffer.from(query, "base64").toString("utf8");
+
     // Since parameters defaults to [], we can safely serialize it directly
     const serializedParameters = JSON.stringify(parameters);
 
     // Insert the query and parameters into the database
     const [result] = await knex(internalKnexConfig)("queries")
       .insert({
-        query,
+        query: decodedQuery,
         database,
         parameters: serializedParameters as any, // parameters will be an empty array if not provided
       })
@@ -45,7 +47,7 @@ export const executeQuery = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { id, queryParams = [] } = req.body;
+  const { id, parameters = [] } = req.body;
 
   try {
     const savedQuery = await knex(internalKnexConfig)("queries")
@@ -59,7 +61,7 @@ export const executeQuery = async (
     const savedParameters = savedQuery.parameters;
 
     // Check if the count of provided parameters matches the saved query's expected parameters
-    if (savedParameters.length !== queryParams.length) {
+    if (savedParameters.length !== parameters.length) {
       return res
         .status(400)
         .send({ message: "Incorrect number of parameters provided" });
@@ -67,7 +69,7 @@ export const executeQuery = async (
 
     // Validate the types and names of provided parameters against saved parameters
     for (const savedParam of savedParameters) {
-      const queryParam = queryParams.find(
+      const queryParam = parameters.find(
         (p: Parameter) => p.name === savedParam.name
       );
 
@@ -84,9 +86,9 @@ export const executeQuery = async (
       }
     }
 
-    // Extract the values from queryParams in the order of the saved parameters
+    // Extract the values from parameters in the order of the saved parameters
     const values = savedParameters.map(
-      (param) => queryParams.find((p: Parameter) => p.name === param.name).value
+      (param) => parameters.find((p: Parameter) => p.name === param.name).value
     );
 
     // Execute the saved query with the provided parameters

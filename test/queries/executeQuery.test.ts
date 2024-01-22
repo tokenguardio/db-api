@@ -49,7 +49,7 @@ describe("executeQuery Controller", () => {
 
     const response = await supertest(app).post("/execute-query").send({
       id: 1,
-      queryParams: [],
+      parameters: [],
     });
 
     expect(response.status).toBe(200);
@@ -61,7 +61,7 @@ describe("executeQuery Controller", () => {
 
   it("should return error for missing query ID", async () => {
     const response = await supertest(app).post("/execute-query").send({
-      queryParams: [],
+      parameters: [],
     });
 
     expect(response.status).toBe(400);
@@ -76,7 +76,7 @@ describe("executeQuery Controller", () => {
 
     const response = await supertest(app).post("/execute-query").send({
       id: 999, // Non-existent ID
-      queryParams: [],
+      parameters: [],
     });
 
     expect(response.status).toBe(404);
@@ -90,7 +90,7 @@ describe("executeQuery Controller", () => {
 
     const response = await supertest(app).post("/execute-query").send({
       id: 1,
-      queryParams: [],
+      parameters: [],
     });
 
     expect(response.status).toBe(500);
@@ -113,7 +113,7 @@ describe("executeQuery Controller", () => {
       .post("/execute-query")
       .send({
         id: 1,
-        queryParams: [{ name: "param1", value: "not-a-number" }], // Assuming param1 should be a number
+        parameters: [{ name: "param1", value: "not-a-number" }], // Assuming param1 should be a number
       });
 
     expect(response.status).toBe(400);
@@ -141,7 +141,7 @@ describe("executeQuery Controller", () => {
       .post("/execute-query")
       .send({
         id: 1,
-        queryParams: [{ name: "param1", value: 123 }],
+        parameters: [{ name: "param1", value: 123 }],
       });
 
     expect(response.status).toBe(400);
@@ -166,7 +166,7 @@ describe("executeQuery Controller", () => {
       .post("/execute-query")
       .send({
         id: 1,
-        queryParams: [{ name: "wrongParamName", value: 123 }],
+        parameters: [{ name: "wrongParamName", value: 123 }],
       });
 
     expect(response.status).toBe(400);
@@ -197,7 +197,7 @@ describe("executeQuery Controller", () => {
       .post("/execute-query")
       .send({
         id: 1,
-        queryParams: [{ name: "column", value: "testValue" }],
+        parameters: [{ name: "column", value: "testValue" }],
       });
 
     expect(response.status).toBe(200);
@@ -227,7 +227,7 @@ describe("executeQuery Controller", () => {
 
     const response = await supertest(app).post("/execute-query").send({
       id: 1,
-      queryParams: [],
+      parameters: [],
     });
 
     expect(response.status).toBe(200);
@@ -256,7 +256,7 @@ describe("executeQuery Controller", () => {
       .post("/execute-query")
       .send({
         id: 1,
-        queryParams: [{ name: "column", value: "testValue" }],
+        parameters: [{ name: "column", value: "testValue" }],
       });
 
     expect(response.status).toBe(500);
@@ -288,7 +288,7 @@ describe("executeQuery Controller", () => {
       .post("/execute-query")
       .send({
         id: 1,
-        queryParams: [
+        parameters: [
           { name: "column", value: "testValue" },
           { name: "column2", value: "testValue" },
         ],

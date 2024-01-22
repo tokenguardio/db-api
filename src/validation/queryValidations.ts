@@ -57,6 +57,6 @@ const executeQueryParamSchema = Joi.object({
 export const executeQueryValidation: Validation = {
   body: Joi.object({
     id: Joi.number().required(),
-    queryParams: Joi.array().items(executeQueryParamSchema).optional(),
+    parameters: Joi.array().items(executeQueryParamSchema).optional(),
   }),
 };
