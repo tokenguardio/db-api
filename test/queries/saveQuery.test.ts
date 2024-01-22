@@ -1,6 +1,6 @@
 import supertest from "supertest";
-import knex from "knex";
 import mockKnex from "mock-knex";
+import knex from "knex";
 import app from "../../src/app";
 
 const knexInstance = knex({
@@ -9,8 +9,18 @@ const knexInstance = knex({
 const encodedQuery = Buffer.from("SELECT * FROM table").toString("base64");
 
 describe("saveQuery Controller", () => {
+  let tracker: mockKnex.Tracker;
   beforeAll(() => {
     mockKnex.mock(knexInstance);
+  });
+
+  beforeEach(() => {
+    tracker = mockKnex.getTracker();
+    tracker.install();
+  });
+
+  afterEach(() => {
+    tracker.uninstall();
   });
 
   afterAll(async () => {
@@ -18,9 +28,6 @@ describe("saveQuery Controller", () => {
   });
 
   it("should save a query with valid parameters", async () => {
-    const tracker = mockKnex.getTracker();
-    tracker.install();
-
     tracker.on("query", (query) => {
       expect(query.method).toEqual("insert");
       query.response([{ id: 3 }]);
@@ -39,14 +46,9 @@ describe("saveQuery Controller", () => {
       data: { id: 3 },
       message: "Query saved successfully",
     });
-
-    tracker.uninstall();
   });
 
   it("should save a query without parameters", async () => {
-    const tracker = mockKnex.getTracker();
-    tracker.install();
-
     tracker.on("query", (query) => {
       expect(query.method).toEqual("insert");
       query.response([{ id: 1 }]);
@@ -63,8 +65,6 @@ describe("saveQuery Controller", () => {
       data: { id: 1 },
       message: "Query saved successfully",
     });
-
-    tracker.uninstall();
   });
 
   it("should return error for invalid database", async () => {
@@ -159,9 +159,6 @@ describe("saveQuery Controller", () => {
   });
 
   it("should handle database errors gracefully", async () => {
-    const tracker = mockKnex.getTracker();
-    tracker.install();
-
     tracker.on("query", (query) => {
       query.reject(new Error("Database error"));
     });
@@ -176,8 +173,6 @@ describe("saveQuery Controller", () => {
     expect(response.body.message).toContain(
       "Error occurred while saving the query"
     );
-
-    tracker.uninstall();
   });
 
   it("should return error for duplicate parameter names", async () => {

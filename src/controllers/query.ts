@@ -59,50 +59,53 @@ export const executeQuery = async (
 
     const savedParameters = savedQuery.parameters;
 
-    // If there are saved parameters, validate the types against queryParams
-    if (savedParameters.length > 0) {
-      for (const param of savedParameters) {
-        const queryParam = queryParams.find(
-          (p: Parameter) => p.name === param.name
-        );
-        // Check if the parameter is required (not null) and if it has the correct type
-        if (!queryParam || !isValueOfType(queryParam.value, param.type)) {
-          return res
-            .status(400)
-            .send({ message: `Invalid type for parameter ${param.name}` });
-        }
+    // Check if the count of provided parameters matches the saved query's expected parameters
+    if (savedParameters.length !== queryParams.length) {
+      return res
+        .status(400)
+        .send({ message: "Incorrect number of parameters provided" });
+    }
+
+    // Validate the types and names of provided parameters against saved parameters
+    for (const savedParam of savedParameters) {
+      const queryParam = queryParams.find(
+        (p: Parameter) => p.name === savedParam.name
+      );
+
+      if (!queryParam) {
+        return res
+          .status(400)
+          .send({ message: `Parameter ${savedParam.name} is missing` });
       }
 
-      // Extract the values from queryParams in the order of the saved parameters
-      const values = savedParameters.map(
-        (param: Parameter) =>
-          queryParams.find((p: Parameter) => p.name === param.name).value
-      );
-
-      // Execute the saved query with the provided parameters
-      const result = await knex(externalKnexConfigs[savedQuery.database]).raw(
-        savedQuery.query,
-        values
-      );
-
-      return res
-        .status(200)
-        .json({ data: result.rows, message: "Query executed" });
-    } else {
-      // Execute the saved query without parameters
-      const result = await knex(externalKnexConfigs[savedQuery.database]).raw(
-        savedQuery.query
-      );
-
-      return res
-        .status(200)
-        .json({ data: result.rows, message: "Query executed" });
+      if (!isValueOfType(queryParam.value, savedParam.type)) {
+        return res
+          .status(400)
+          .send({ message: `Invalid type for parameter ${savedParam.name}` });
+      }
     }
+
+    // Extract the values from queryParams in the order of the saved parameters
+    const values = savedParameters.map(
+      (param) => queryParams.find((p: Parameter) => p.name === param.name).value
+    );
+
+    // Execute the saved query with the provided parameters
+    const result = await knex(externalKnexConfigs[savedQuery.database]).raw(
+      savedQuery.query,
+      values
+    );
+
+    return res
+      .status(200)
+      .json({ data: result.rows || [], message: "Query executed" });
   } catch (error) {
     console.error("Error executing the query:", error);
     return res.status(500).send({ message: "Error executing the query" });
   }
 };
+
+// Existing isValueOfType function...
 
 const isValueOfType = (value: any, type: string): boolean => {
   switch (type) {
