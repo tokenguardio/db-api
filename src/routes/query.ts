@@ -13,7 +13,20 @@ const router = Router();
  * /save-query:
  *   post:
  *     summary: Save a SQL query
- *     description: Saves a SQL query along with its parameters for later execution. This endpoint is useful for storing queries that can be dynamically executed with different parameters.
+ *     description: |
+ *                   Saves a SQL query along with its parameters for later execution. This endpoint is useful for storing queries that can be dynamically executed with different parameters. The query must be a base64 encoded string. For example, the following SQL query:
+ *                   ```
+ *                   WITH onchain_developers AS (select *, 'WASM' as contract_type from stg.wasm_contracts_creations
+ *                   union all
+ *                   select *, 'EVM' as contract_type from stg.evm_contracts_creations) SELECT (DATE( date_trunc('week', onchain_developers."date_of_record")::date)) AS "onchain_developers.dynamic_timeframe",
+ *                   COUNT(DISTINCT onchain_developers."deployer")  AS "onchain_developers.unique_developers"
+ *                   FROM onchain_developers
+ *                   WHERE (onchain_developers."contract_type" ) IN (?, ?) AND ((( onchain_developers."date_of_record"  ) >= ((SELECT (DATE_TRUNC('day', CURRENT_TIMESTAMP) + (-89 || ' day')::INTERVAL))) AND ( onchain_developers."date_of_record"  ) < ((SELECT ((DATE_TRUNC('day', CURRENT_TIMESTAMP) + (-89 || ' day')::INTERVAL) + (90 || ' day')::INTERVAL)))))
+ *                   GROUP BY 1
+ *                   ORDER BY 1
+ *                   FETCH NEXT 500 ROWS ONLY
+ *                   ```
+ *                   is encoded as the base64 string provided in the example. You can see two '?' parameters that can be filled later.
  *     requestBody:
  *       required: true
  *       content:
@@ -23,7 +36,20 @@ const router = Router();
  *             properties:
  *               query:
  *                 type: string
- *                 description: The SQL query string to be saved. The query must be a base64 encoded string.
+ *                 description: |
+ *                   The SQL query string to be saved. The query must be a base64 encoded string. For example, the following SQL query:
+ *                   ```
+ *                   WITH onchain_developers AS (select *, 'WASM' as contract_type from stg.wasm_contracts_creations
+ *                   union all
+ *                   select *, 'EVM' as contract_type from stg.evm_contracts_creations) SELECT (DATE( date_trunc('week', onchain_developers."date_of_record")::date)) AS "onchain_developers.dynamic_timeframe",
+ *                   COUNT(DISTINCT onchain_developers."deployer")  AS "onchain_developers.unique_developers"
+ *                   FROM onchain_developers
+ *                   WHERE (onchain_developers."contract_type" ) IN (?, ?) AND ((( onchain_developers."date_of_record"  ) >= ((SELECT (DATE_TRUNC('day', CURRENT_TIMESTAMP) + (-89 || ' day')::INTERVAL))) AND ( onchain_developers."date_of_record"  ) < ((SELECT ((DATE_TRUNC('day', CURRENT_TIMESTAMP) + (-89 || ' day')::INTERVAL) + (90 || ' day')::INTERVAL)))))
+ *                   GROUP BY 1
+ *                   ORDER BY 1
+ *                   FETCH NEXT 500 ROWS ONLY
+ *                   ```
+ *                   is encoded as the base64 string provided in the example.
  *                 example: "V0lUSCBvbmNoYWluX2RldmVsb3BlcnMgQVMgKHNlbGVjdCAqLCAnV0FTTScgYXMgY29udHJhY3RfdHlwZSBmcm9tIHN0Zy53YXNtX2NvbnRyYWN0c19jcmVhdGlvbnMKdW5pb24gYWxsCnNlbGVjdCAqLCAnRVZNJyBhcyBjb250cmFjdF90eXBlIGZyb20gc3RnLmV2bV9jb250cmFjdHNfY3JlYXRpb25zCikKU0VMRUNUCihEQVRFKCBkYXRlX3RydW5jKCd3ZWVrJywgb25jaGFpbl9kZXZlbG9wZXJzLiJkYXRlX29mX3JlY29yZCIpOjpkYXRlCgopKSBBUyAib25jaGFpbl9kZXZlbG9wZXJzLmR5bmFtaWNfdGltZWZyYW1lIiwKQ09VTlQoRElTVElOQ1Qgb25jaGFpbl9kZXZlbG9wZXJzLiJkZXBsb3llciIpICBBUyAib25jaGFpbl9kZXZlbG9wZXJzLnVuaXF1ZV9kZXZlbG9wZXJzIgpGUk9NIG9uY2hhaW5fZGV2ZWxvcGVycwpXSEVSRSAob25jaGFpbl9kZXZlbG9wZXJzLiJjb250cmFjdF90eXBlIiApIElOICg/LCA/KSBBTkQgKCgoIG9uY2hhaW5fZGV2ZWxvcGVycy4iZGF0ZV9vZl9yZWNvcmQiICApID49ICgoU0VMRUNUIChEQVRFX1RSVU5DKCdkYXknLCBDVVJSRU5UX1RJTUVTVEFNUCkgKyAoLTg5IHx8ICcgZGF5Jyk6OklOVEVSVkFMKSkpIEFORCAoIG9uY2hhaW5fZGV2ZWxvcGVycy4iZGF0ZV9vZl9yZWNvcmQiICApIDwgKChTRUxFQ1QgKChEQVRFX1RSVU5DKCdkYXknLCBDVVJSRU5UX1RJTUVTVEFNUCkgKyAoLTg5IHx8ICcgZGF5Jyk6OklOVEVSVkFMKSArICg5MCB8fCAnIGRheScpOjpJTlRFUlZBTCkpKSkpCkdST1VQIEJZCjEKT1JERVIgQlkKMQpGRVRDSCBORVhUIDUwMCBST1dTIE9OTFk="
  *               database:
  *                 type: string
