@@ -28,7 +28,6 @@ describe("executeQuery Controller", () => {
   });
 
   it("should successfully execute a query", async () => {
-    // Mock saved query data
     const savedQueryData = {
       id: 1,
       query: "SELECT * FROM test_table",
@@ -37,12 +36,10 @@ describe("executeQuery Controller", () => {
     };
 
     tracker.on("query", (query) => {
-      // Respond to internal database queries
       query.response([savedQueryData]);
     });
 
     tracker.on("query", (query) => {
-      // Respond to external database queries
       if (query.method === "raw") {
         query.response({
           rows: [{ a: 1, b: 2 }],
@@ -109,7 +106,6 @@ describe("executeQuery Controller", () => {
     };
 
     tracker.on("query", (query) => {
-      // Respond to internal database queries
       query.response([savedQueryData]);
     });
 
@@ -126,7 +122,6 @@ describe("executeQuery Controller", () => {
     );
   });
 
-  // Test for wrong number of parameters
   it("should return error for wrong number of query parameters", async () => {
     const savedQueryData = {
       id: 1,
@@ -142,7 +137,6 @@ describe("executeQuery Controller", () => {
       query.response([savedQueryData]);
     });
 
-    // Sending only one parameter instead of two
     const response = await supertest(app)
       .post("/execute-query")
       .send({
@@ -156,7 +150,6 @@ describe("executeQuery Controller", () => {
     );
   });
 
-  // Test for different parameter names
   it("should return error for mismatched query parameter names", async () => {
     const savedQueryData = {
       id: 1,
@@ -169,7 +162,6 @@ describe("executeQuery Controller", () => {
       query.response([savedQueryData]);
     });
 
-    // Sending a parameter with a different name
     const response = await supertest(app)
       .post("/execute-query")
       .send({
@@ -190,12 +182,10 @@ describe("executeQuery Controller", () => {
     };
 
     tracker.on("query", (query) => {
-      // Respond to internal database queries
       query.response([savedQueryData]);
     });
 
     tracker.on("query", (query) => {
-      // Respond to external database queries
       if (query.method === "raw") {
         query.response({
           rows: [{ a: 1, b: 2 }],
@@ -226,12 +216,10 @@ describe("executeQuery Controller", () => {
     };
 
     tracker.on("query", (query) => {
-      // Respond to internal database queries
       query.response([savedQueryData]);
     });
 
     tracker.on("query", (query) => {
-      // Respond to external database queries
       if (query.method === "raw") {
         query.response([]);
       }
@@ -255,12 +243,10 @@ describe("executeQuery Controller", () => {
     };
 
     tracker.on("query", (query) => {
-      // Respond to internal database queries
       query.response([savedQueryData]);
     });
 
     tracker.on("query", (query) => {
-      // Respond to external database queries
       if (query.method === "raw") {
         query.response([]);
       }
@@ -289,12 +275,10 @@ describe("executeQuery Controller", () => {
     };
 
     tracker.on("query", (query) => {
-      // Respond to internal database queries
       query.response([savedQueryData]);
     });
 
     tracker.on("query", (query) => {
-      // Respond to external database queries
       if (query.method === "raw") {
         query.response([]);
       }

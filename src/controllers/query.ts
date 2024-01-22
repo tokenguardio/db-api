@@ -30,7 +30,6 @@ export const saveQuery = async (
       })
       .returning("id");
 
-    // Return the ID of the saved query
     return res
       .status(201)
       .json({ data: result, message: "Query saved successfully" });
@@ -104,8 +103,6 @@ export const executeQuery = async (
     return res.status(500).send({ message: "Error executing the query" });
   }
 };
-
-// Existing isValueOfType function...
 
 const isValueOfType = (value: any, type: string): boolean => {
   switch (type) {
