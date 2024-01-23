@@ -31,9 +31,6 @@ dbapi:
     replicaCount: 1
     env: 
       NODE_ENV: "development"
-      DB_PORT: "5432"
-      DB_NAME: "crosschain"
-      DB_SCHEMA: "growth_index"
     resources: 
       requests:
         memory: "256Mi" 
