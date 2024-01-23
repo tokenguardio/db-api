@@ -9,3 +9,16 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+  db-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8082:8082'
+    command: npm run start
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres-test
+    env_file:
+      - ./.env.test
