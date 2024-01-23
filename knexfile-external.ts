@@ -11,16 +11,16 @@ interface Configs {
 const createKnexConfig = (dbName: string): Knex.Config => ({
   client: "postgresql",
   connection: {
-    host: process.env.PROD_EXTERNAL_HOST,
-    user: process.env.PROD_EXTERNAL_USER,
-    password: process.env.PROD_EXTERNAL_PASSWORD,
+    host: process.env.DATA_DB_HOST,
+    user: process.env.DATA_DB_USER,
+    password: process.env.DATA_DB_PASSWORD,
     database: dbName,
-    port: parseInt(process.env.PROD_EXTERNAL_PORT || "", 10) || 5432,
+    port: parseInt(process.env.DATA_DB_PORT || "", 10) || 5432,
   },
 });
 
 // Get an array of database names from the DATABASE_NAMES environment variable
-const databaseNames = (process.env.PROD_EXTERNAL_DB_NAMES || "").split(",");
+const databaseNames = (process.env.DATA_DB_NAMES || "").split(",");
 
 // Generate dynamic configurations for each database name
 const config: Configs = databaseNames.reduce(

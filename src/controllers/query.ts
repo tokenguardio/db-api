@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import knex from "knex";
-import internalKnexConfig from "../../knexfile";
+import * as internalQueryService from "../db/services/internalQueryService";
+import * as externalQueryService from "../db/services/externalQueryService";
 import externalKnexConfigs from "../../knexfile-external";
 import { Parameter } from "../types/queries";
 
@@ -17,24 +18,19 @@ export const saveQuery = async (
     });
   }
 
+  const decodedQuery = Buffer.from(query, "base64").toString("utf8");
+  const serializedParameters = JSON.stringify(parameters);
+
   try {
-    const decodedQuery = Buffer.from(query, "base64").toString("utf8");
-
-    // Since parameters defaults to [], we can safely serialize it directly
-    const serializedParameters = JSON.stringify(parameters);
-
-    // Insert the query and parameters into the database
-    const [result] = await knex(internalKnexConfig)("queries")
-      .insert({
-        query: decodedQuery,
-        database,
-        parameters: serializedParameters as any, // parameters will be an empty array if not provided
-      })
-      .returning("id");
+    const queryId = await internalQueryService.saveQuery(
+      decodedQuery,
+      database,
+      serializedParameters as any
+    );
 
     return res
       .status(201)
-      .json({ data: result, message: "Query saved successfully" });
+      .json({ data: queryId, message: "Query saved successfully" });
   } catch (error) {
     console.error("Error saving the query:", error);
     return res.status(500).json({
@@ -50,9 +46,7 @@ export const executeQuery = async (
   const { id, parameters = [] } = req.body;
 
   try {
-    const savedQuery = await knex(internalKnexConfig)("queries")
-      .where({ id })
-      .first();
+    const savedQuery = await internalQueryService.getSavedQuery(id);
 
     if (!savedQuery) {
       return res.status(404).send({ message: "Query not found" });
@@ -91,15 +85,13 @@ export const executeQuery = async (
       (param) => parameters.find((p: Parameter) => p.name === param.name).value
     );
 
-    // Execute the saved query with the provided parameters
-    const result = await knex(externalKnexConfigs[savedQuery.database]).raw(
+    const result = await externalQueryService.executeExternalQuery(
+      externalKnexConfigs[savedQuery.database],
       savedQuery.query,
       values
     );
 
-    return res
-      .status(200)
-      .json({ data: result.rows || [], message: "Query executed" });
+    return res.status(200).json({ data: result, message: "Query executed" });
   } catch (error) {
     console.error("Error executing the query:", error);
     return res.status(500).send({ message: "Error executing the query" });

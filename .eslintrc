@@ -18,5 +18,5 @@
     ],
     "@typescript-eslint/no-unused-vars": "warn"
   },
-  "ignorePatterns": ["src/models/*"]
+  "ignorePatterns": ["src/db/models/*"]
 }

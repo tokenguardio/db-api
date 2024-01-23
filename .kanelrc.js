@@ -15,7 +15,7 @@ module.exports = {
   },
 
   preDeleteOutputFolder: true,
-  outputPath: "./src/models",
+  outputPath: "./src/db/models",
 
   preRenderHooks: [generateKnexTablesModule, generateMigrationCheck],
   typeFilter: knexTypeFilter
