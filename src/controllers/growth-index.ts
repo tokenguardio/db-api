@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import pg from "../config/knex";
+import knex from "knex";
+import externalKnexConfigs from "../../knexfile-external";
 
 export enum ChainName {
   AlephZero = "aleph-zero",
@@ -46,10 +47,14 @@ export const getGrowthIndex = async (
     startDate.setDate(startDate.getDate() - Number(daysAgo));
 
     // Construct and execute the query
-    const data = await pg(tableName)
-      .select(pg.raw(`date_trunc('${interval}', "${dateColumn}") as interval`))
+    const data = await knex(externalKnexConfigs["crosschain"])(tableName)
       .select(
-        pg.raw(
+        knex(externalKnexConfigs["crosschain"]).raw(
+          `date_trunc('${interval}', "${dateColumn}") as interval`
+        )
+      )
+      .select(
+        knex(externalKnexConfigs["crosschain"]).raw(
           `${aggregateFunction}(DISTINCT "${aggregateColumn}") as aggregate`
         )
       )
@@ -83,7 +88,9 @@ export async function getGrowthIndexHistorical(
 
   try {
     // Query the database
-    const data = await pg(tableName as string)
+    const data = await knex(externalKnexConfigs["crosschain"])(
+      tableName as string
+    )
       .select([...columnArray, dateColumn as string, "chain"])
       .where(dateColumn as string, ">=", startDate)
       .whereIn("chain", chainsArray)
@@ -121,7 +128,9 @@ export async function getLatestGrowthIndexData(
 
   try {
     // Subquery to get the latest date for each chain
-    const latestDatesSubquery = pg(tableName as string)
+    const latestDatesSubquery = knex(externalKnexConfigs["crosschain"])(
+      tableName as string
+    )
       .select("chain")
       .max(dateColumn as string, { as: "latest_date" })
       .whereIn("chain", chainsArray)
@@ -129,7 +138,9 @@ export async function getLatestGrowthIndexData(
       .as("latest_dates");
 
     // Main query to get the full row data for the latest entries
-    const rawData = await pg(tableName as string)
+    const rawData = await knex(externalKnexConfigs["crosschain"])(
+      tableName as string
+    )
       .select([
         ...columnArray,
         `${tableName}.${dateColumn} as week_of_record`,

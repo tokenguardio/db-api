@@ -26,29 +26,56 @@ spec:
               value: {{ .Values.dbapi.deployment.env.PORT | quote }}                  
             - name: NODE_ENV
               value: {{ .Values.dbapi.deployment.env.NODE_ENV }}
-            - name: DB_USER
+            - name: DATA_DB_USER
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
-                  key: postgres-username
-            - name: DB_PASSWORD
+                  key: data-postgres-username
+            - name: DATA_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
-                  key: postgres-password   
-            - name: DB_HOST
+                  key: data-postgres-password   
+            - name: DATA_DB_HOST
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
-                  key: postgres-host 
-            - name: DB_PORT
-              value: "5432"
-            - name: DB_NAME
-              value: crosschain
-            - name: DB_SCHEMA
-              value: growth_index
-            - name: DB_SSL
-              value: "true"
+                  key: data-postgres-host
+            - name: DATA_DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: data-postgres-port
+            - name: DATA_DB_NAMES
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: data-postgres-dbnames
+            - name: QUERIES_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: queries-postgres-username
+            - name: QUERIES_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: queries-postgres-password   
+            - name: QUERIES_DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: queries-postgres-host
+            - name: QUERIES_DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: queries-postgres-port
+            - name: QUERIES_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: queries-postgres-dbname
           resources:
 {{ toYaml .Values.dbapi.deployment.resources | indent 12 }}              
           volumeMounts:                           
