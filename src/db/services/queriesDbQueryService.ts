@@ -1,6 +1,6 @@
 import knex from "knex";
 import Queries from "../models/public/Queries";
-import { Parameters } from "../../../src/types/queries";
+import { Parameters } from "../../types/queries";
 import internalKnexConfig from "../../../knexfile";
 
 export const saveQuery = async (

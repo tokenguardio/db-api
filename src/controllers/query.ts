@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
-import knex from "knex";
-import * as internalQueryService from "../db/services/internalQueryService";
-import * as externalQueryService from "../db/services/externalQueryService";
+import * as queriesDbQueryService from "../db/services/queriesDbQueryService";
+import * as dataDbQueryService from "../db/services/dataDbQueryService";
 import externalKnexConfigs from "../../knexfile-external";
 import { Parameter } from "../types/queries";
 
@@ -22,7 +21,7 @@ export const saveQuery = async (
   const serializedParameters = JSON.stringify(parameters);
 
   try {
-    const queryId = await internalQueryService.saveQuery(
+    const queryId = await queriesDbQueryService.saveQuery(
       decodedQuery,
       database,
       serializedParameters as any
@@ -46,7 +45,7 @@ export const executeQuery = async (
   const { id, parameters = [] } = req.body;
 
   try {
-    const savedQuery = await internalQueryService.getSavedQuery(id);
+    const savedQuery = await queriesDbQueryService.getSavedQuery(id);
 
     if (!savedQuery) {
       return res.status(404).send({ message: "Query not found" });
@@ -85,7 +84,7 @@ export const executeQuery = async (
       (param) => parameters.find((p: Parameter) => p.name === param.name).value
     );
 
-    const result = await externalQueryService.executeExternalQuery(
+    const result = await dataDbQueryService.executeQuery(
       externalKnexConfigs[savedQuery.database],
       savedQuery.query,
       values

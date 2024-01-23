@@ -11,11 +11,11 @@ const config: KnexConfigMap = {
   development: {
     client: "postgresql",
     connection: {
-      host: process.env.INTERNAL_DB_HOST,
-      user: process.env.INTERNAL_DB_USER,
-      password: process.env.INTERNAL_DB_PASSWORD,
-      database: process.env.INTERNAL_DB_NAME,
-      port: parseInt(process.env.INTERNAL_DB_PORT || "", 10) || 5432,
+      host: process.env.QUERIES_DB_HOST,
+      user: process.env.QUERIES_DB_USER,
+      password: process.env.QUERIES_DB_PASSWORD,
+      database: process.env.QUERIES_DB_NAME,
+      port: parseInt(process.env.QUERIES_DB_PORT || "", 10) || 5432,
     },
     pool: {
       min: 2,
@@ -28,11 +28,11 @@ const config: KnexConfigMap = {
   production: {
     client: "postgresql",
     connection: {
-      host: process.env.INTERNAL_DB_HOST,
-      user: process.env.INTERNAL_DB_USER,
-      password: process.env.INTERNAL_DB_PASSWORD,
-      database: process.env.INTERNAL_DB_NAME,
-      port: parseInt(process.env.INTERNAL_DB_PORT || "", 10) || 5432,
+      host: process.env.QUERIES_DB_HOST,
+      user: process.env.QUERIES_DB_USER,
+      password: process.env.QUERIES_DB_PASSWORD,
+      database: process.env.QUERIES_DB_NAME,
+      port: parseInt(process.env.QUERIES_DB_PORT || "", 10) || 5432,
     },
     pool: {
       min: 2,

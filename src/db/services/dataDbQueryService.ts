@@ -1,7 +1,7 @@
 import knex from "knex";
 import { Knex } from "knex";
 
-export const executeExternalQuery = async (
+export const executeQuery = async (
   databaseConfig: Knex.Config,
   query: string,
   values: (string | number | Date)[]
