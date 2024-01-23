@@ -1,4 +1,4 @@
-FROM postgres
+FROM postgres:16
 
 # Copy the initialization script and .env.test file
 COPY init-test-db.sh /docker-entrypoint-initdb.d/
