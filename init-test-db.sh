@@ -16,7 +16,7 @@ EOSQL
 }
 
 # Convert the DB names string to an array
-IFS=',' read -ra DB_ARRAY <<< "$PROD_EXTERNAL_DB_NAMES"
+IFS=',' read -ra DB_ARRAY <<< "$DATA_DB_NAMES"
 
 # Loop through and create each database
 for db in "${DB_ARRAY[@]}"; do
