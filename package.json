@@ -49,7 +49,6 @@
     "@types/supertest": "^6.0.2",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
-    "@types/winston": "2.4.4",
     "@typescript-eslint/eslint-plugin": "6.15.0",
     "@typescript-eslint/parser": "6.15.0",
     "concurrently": "^8.2.2",
