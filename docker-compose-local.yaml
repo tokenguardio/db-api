@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  db-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    command: npm run start
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
