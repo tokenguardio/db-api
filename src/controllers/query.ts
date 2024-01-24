@@ -44,6 +44,9 @@ export const executeQuery = async (
 ): Promise<Response> => {
   const { id, parameters = [] } = req.body;
 
+  let sqlQuery;
+  let queryValues;
+
   try {
     const savedQuery = await queriesDbQueryService.getSavedQuery(id);
 
@@ -84,16 +87,24 @@ export const executeQuery = async (
       (param) => parameters.find((p: Parameter) => p.name === param.name).value
     );
 
+    sqlQuery = savedQuery.query; // Assign the SQL query
+    queryValues = values; // Assign the values used in the query
     const result = await dataDbQueryService.executeQuery(
       externalKnexConfigs[savedQuery.database],
-      savedQuery.query,
-      values
+      sqlQuery,
+      queryValues
     );
 
     return res.status(200).json({ data: result, message: "Query executed" });
   } catch (error) {
     console.error("Error executing the query:", error);
-    return res.status(500).send({ message: "Error executing the query" });
+    // Include the SQL query and values in the error response
+    return res.status(500).send({
+      message: "Error executing the query",
+      sqlQuery: sqlQuery, // Now accessible in the catch block
+      values: queryValues, // Now accessible in the catch block
+      error: error.message, // Assuming 'error.message' contains the database error
+    });
   }
 };
 
