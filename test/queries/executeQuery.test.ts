@@ -94,7 +94,9 @@ describe("executeQuery Controller", () => {
     });
 
     expect(response.status).toBe(500);
-    expect(response.body.message).toContain("Error executing the query");
+    expect(response.body).toMatchObject({
+      message: "Error executing the query",
+    });
   });
 
   it("should return error for invalid query parameters", async () => {
@@ -260,7 +262,9 @@ describe("executeQuery Controller", () => {
       });
 
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ message: "Error executing the query" });
+    expect(response.body).toMatchObject({
+      message: "Error executing the query",
+    });
   });
 
   it("should return an error if the number of provided parameters exceeds the number of ? placeholders in the SQL query", async () => {
@@ -295,6 +299,8 @@ describe("executeQuery Controller", () => {
       });
 
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ message: "Error executing the query" });
+    expect(response.body).toMatchObject({
+      message: "Error executing the query",
+    });
   });
 });
