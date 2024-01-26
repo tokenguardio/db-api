@@ -1,17 +1,19 @@
 import knex from "knex";
 import Queries from "../models/public/Queries";
-import { Parameters } from "../../types/queries";
 import internalKnexConfig from "../../../knexfile";
+import { StoredParameters } from "queries";
 
 export const saveQuery = async (
   query: string,
   database: string,
-  parameters: Parameters
+  label: string,
+  parameters: StoredParameters
 ): Promise<Pick<Queries, "id">> => {
   const [result] = await knex(internalKnexConfig)("queries")
     .insert({
       query,
       database,
+      label,
       parameters,
     })
     .returning("id");

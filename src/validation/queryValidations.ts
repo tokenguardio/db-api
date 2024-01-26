@@ -1,7 +1,13 @@
 import Joi, { CustomHelpers } from "joi";
-import { Validation } from "./validationInterface";
 
-export const SQLDataTypes: string[] = ["number", "date", "string"];
+export const SQLDataTypes: string[] = [
+  "number",
+  "date",
+  "string",
+  "number[]",
+  "date[]",
+  "string[]",
+];
 
 // Custom Base64 validation function
 const base64Validator = (value: string, helpers: CustomHelpers) => {
@@ -35,28 +41,46 @@ export const saveQueryValidation = {
   body: Joi.object({
     query: Joi.string().custom(base64Validator, "base64 validation").required(),
     database: Joi.string().required(),
-    parameters: Joi.array()
-      .items(queryParameterSchema)
-      .unique((a, b) => a.name === b.name) // Ensure unique names in parameters
-      .optional()
-      .messages({
-        "array.unique": "Duplicate parameter names are not allowed",
-      }),
+    label: Joi.string().optional(),
+    parameters: Joi.object({
+      values: Joi.array()
+        .items(queryParameterSchema)
+        .unique((a, b) => a.name === b.name) // Ensure unique names in parameters
+        .optional()
+        .messages({
+          "array.unique": "Duplicate parameter names are not allowed",
+        }),
+    }).optional(), // parameters object itself is optional
   }),
 };
 
-// Define the Joi schema for a QueryParam used in executeQuery
 const executeQueryParamSchema = Joi.object({
   name: Joi.string().required(),
   value: Joi.alternatives()
-    .try(Joi.string(), Joi.number(), Joi.date()) // Adjust based on the types of values you expect
+    .try(
+      Joi.string(),
+      Joi.number(),
+      Joi.date(),
+      Joi.array().items(Joi.string(), Joi.number(), Joi.date())
+    )
     .required(),
 });
 
-// Define the Validation object for the executeQuery request body
-export const executeQueryValidation: Validation = {
+const identifiersSchema = Joi.array().items(
+  Joi.object({
+    name: Joi.string().required(),
+    value: Joi.string().required(),
+  })
+);
+
+const parametersSchema = Joi.object({
+  values: Joi.array().items(executeQueryParamSchema).optional(),
+  identifiers: identifiersSchema.optional(),
+});
+
+export const executeQueryValidation = {
   body: Joi.object({
     id: Joi.number().required(),
-    parameters: Joi.array().items(executeQueryParamSchema).optional(),
+    parameters: parametersSchema.optional(),
   }),
 };

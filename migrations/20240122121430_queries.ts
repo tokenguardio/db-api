@@ -8,6 +8,7 @@ export async function up(knex: Knex): Promise<void> {
       .json("parameters")
       .comment("@type(Parameters, '../../types/queries', true, false, false)");
     table.text("database").notNullable();
+    table.text("label");
     table.timestamp("created_at").defaultTo(knex.fn.now());
     table.timestamp("updated_at").defaultTo(knex.fn.now());
   });
