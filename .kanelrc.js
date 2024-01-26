@@ -7,11 +7,11 @@ dotenv.config({ path: ".env" });
 /** @type {import('kanel').Config} */
 module.exports = {
   connection: {
-    host: process.env.DEV_INTERNAL_HOST,
-    user: process.env.DEV_INTERNAL_USER,
-    password: process.env.DEV_INTERNAL_PASSWORD,
-    database: process.env.DEV_INTERNAL_DB_NAME,
-    port: process.env.DEV_INTERNAL_PORT,
+    host: process.env.QUERIES_DB_HOST,
+    user: process.env.QUERIES_DB_USER,
+    password: process.env.QUERIES_DB_PASSWORD,
+    database: process.env.QUERIES_DB_NAME,
+    port: process.env.QUERIES_DB_PORT,
   },
 
   preDeleteOutputFolder: true,

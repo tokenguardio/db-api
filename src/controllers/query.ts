@@ -2,13 +2,23 @@ import { Request, Response } from "express";
 import * as queriesDbQueryService from "../db/services/queriesDbQueryService";
 import * as dataDbQueryService from "../db/services/dataDbQueryService";
 import externalKnexConfigs from "../../knexfile-external";
-import { Parameter } from "../types/queries";
+import {
+  SaveQueryRequestBody,
+  ExecuteQueryRequestBody,
+  BindConfig,
+  StoredParameters,
+  SingleValue,
+  ValueArray,
+} from "../types/queries";
 
 export const saveQuery = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { query, database, parameters = [] } = req.body; // Default to an empty array if not provided
+  const requestBody = req.body as SaveQueryRequestBody;
+  const { query, database, label, parameters } = requestBody;
+
+  const values = parameters?.values ?? [];
 
   // Check if the specified database exists in pgInstances
   if (!externalKnexConfigs[database]) {
@@ -18,12 +28,51 @@ export const saveQuery = async (
   }
 
   const decodedQuery = Buffer.from(query, "base64").toString("utf8");
-  const serializedParameters = JSON.stringify(parameters);
+
+  const valuePattern = /:\w+\b(?!\:)/g; // Matches :var but not :var:
+  const extractedValueNames = extractQueryParameters(
+    decodedQuery,
+    valuePattern
+  );
+
+  if (extractedValueNames.length !== values.length) {
+    return res
+      .status(400)
+      .send({ message: "Incorrect number of value parameters provided" });
+  }
+
+  for (const valueName of extractedValueNames) {
+    if (!parameters.values.some((param) => param.name === valueName)) {
+      return res
+        .status(400)
+        .send({ message: `Value parameter '${valueName}' is missing` });
+    }
+  }
+
+  const identifierPattern = /:\w+:/g; // Matches :var:
+  const extractedIdentifiers = extractQueryParameters(
+    decodedQuery,
+    identifierPattern
+  );
+
+  let parametersToStore: StoredParameters | null = null;
+
+  if (extractedIdentifiers.length > 0 || (parameters && values.length > 0)) {
+    parametersToStore = {
+      identifiers: extractedIdentifiers,
+      values: values,
+    };
+  }
+
+  const serializedParameters = parametersToStore
+    ? JSON.stringify(parametersToStore)
+    : null;
 
   try {
     const queryId = await queriesDbQueryService.saveQuery(
       decodedQuery,
       database,
+      label,
       serializedParameters as any
     );
 
@@ -42,10 +91,11 @@ export const executeQuery = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { id, parameters = [] } = req.body;
+  const requestBody = req.body as ExecuteQueryRequestBody;
+  const { id, parameters = { values: [], identifiers: [] } } = requestBody;
 
-  let sqlQuery;
-  let queryValues;
+  let sqlQuery: string;
+  const bindConfig: BindConfig = {};
 
   try {
     const savedQuery = await queriesDbQueryService.getSavedQuery(id);
@@ -54,45 +104,87 @@ export const executeQuery = async (
       return res.status(404).send({ message: "Query not found" });
     }
 
-    const savedParameters = savedQuery.parameters;
+    const { values: savedValues = [], identifiers: savedIdentifiers = [] } =
+      savedQuery?.parameters ?? {};
 
-    // Check if the count of provided parameters matches the saved query's expected parameters
-    if (savedParameters.length !== parameters.length) {
+    const {
+      values: providedValues = [],
+      identifiers: providedIdentifiers = [],
+    } = parameters;
+
+    // Validate the count of values and identifiers
+    if (savedValues.length !== providedValues.length) {
       return res
         .status(400)
-        .send({ message: "Incorrect number of parameters provided" });
+        .send({ message: "Incorrect number of value parameters provided" });
     }
 
-    // Validate the types and names of provided parameters against saved parameters
-    for (const savedParam of savedParameters) {
-      const queryParam = parameters.find(
-        (p: Parameter) => p.name === savedParam.name
+    // Validate the count of values and identifiers
+    if (savedIdentifiers.length !== providedIdentifiers.length) {
+      return res
+        .status(400)
+        .send({ message: "Incorrect number of identifiers provided" });
+    }
+
+    // Validate names and types of provided value parameters
+    for (const savedValue of savedValues) {
+      const providedValue = providedValues.find(
+        (v) => v.name === savedValue.name
       );
-
-      if (!queryParam) {
+      if (!providedValue) {
         return res
           .status(400)
-          .send({ message: `Parameter ${savedParam.name} is missing` });
+          .send({ message: `Value parameter '${savedValue.name}' is missing` });
       }
-
-      if (!isValueOfType(queryParam.value, savedParam.type)) {
-        return res
-          .status(400)
-          .send({ message: `Invalid type for parameter ${savedParam.name}` });
+      if (
+        !providedValue ||
+        !isValueOfType(providedValue.value, savedValue.type)
+      ) {
+        return res.status(400).send({
+          message: `Invalid or missing value parameter '${savedValue.name}'`,
+        });
       }
     }
 
-    // Extract the values from parameters in the order of the saved parameters
-    const values = savedParameters.map(
-      (param) => parameters.find((p: Parameter) => p.name === param.name).value
-    );
+    // Validate names of provided identifiers
+    for (const savedIdentifier of savedIdentifiers) {
+      const providedIdentifier = providedIdentifiers.find(
+        (i) => i.name === savedIdentifier
+      );
+      if (!providedIdentifier) {
+        return res
+          .status(400)
+          .send({ message: `Identifier '${savedIdentifier}' is missing` });
+      }
+    }
 
-    sqlQuery = savedQuery.query; // Assign the SQL query
-    queryValues = values; // Assign the values used in the query
+    sqlQuery = savedQuery.query;
+
+    const uniqueArraySuffix = "_arr_";
+    providedValues.forEach((item) => {
+      if (Array.isArray(item.value)) {
+        item.value.forEach((val, index) => {
+          bindConfig[`${item.name}${uniqueArraySuffix}${index}`] = val;
+        });
+        sqlQuery = sqlQuery.replace(
+          new RegExp(`:${item.name}`, "g"),
+          item.value
+            .map((_, index) => `:${item.name}${uniqueArraySuffix}${index}`)
+            .join(", ")
+        );
+      } else {
+        bindConfig[item.name] = item.value;
+      }
+    });
+
+    providedIdentifiers.forEach((item) => {
+      bindConfig[item.name] = item.value;
+    });
+
     const result = await dataDbQueryService.executeQuery(
       externalKnexConfigs[savedQuery.database],
       sqlQuery,
-      queryValues
+      bindConfig
     );
 
     return res.status(200).json({ data: result, message: "Query executed" });
@@ -101,25 +193,51 @@ export const executeQuery = async (
     // Include the SQL query and values in the error response
     return res.status(500).send({
       message: "Error executing the query",
-      sqlQuery: sqlQuery, // Now accessible in the catch block
-      values: queryValues, // Now accessible in the catch block
-      error: error.message, // Assuming 'error.message' contains the database error
+      sqlQuery: sqlQuery,
+      bindConfig: bindConfig,
+      error: error.message,
     });
   }
 };
 
-const isValueOfType = (value: any, type: string): boolean => {
+const isValueOfType = (
+  value: SingleValue | ValueArray,
+  type: string
+): boolean => {
   switch (type) {
     case "number":
-      // Check if the value is a number or can be converted to a number
-      const num = Number(value);
-      return !isNaN(num) && isFinite(num);
+      return typeof value === "number" && !isNaN(value);
     case "string":
       return typeof value === "string";
     case "date":
-      // Ensure the value is a string and can be converted to a valid date
       return typeof value === "string" && !isNaN(Date.parse(value));
+    case "number[]":
+      return (
+        Array.isArray(value) &&
+        value.every((item) => typeof item === "number" && !isNaN(item))
+      );
+    case "string[]":
+      return (
+        Array.isArray(value) && value.every((item) => typeof item === "string")
+      );
+    case "date[]":
+      return (
+        Array.isArray(value) &&
+        value.every(
+          (item) => typeof item === "string" && !isNaN(Date.parse(item))
+        )
+      );
     default:
       return false;
   }
 };
+
+function extractQueryParameters(
+  decodedQuery: string,
+  pattern: RegExp
+): string[] {
+  const matches = decodedQuery.matchAll(pattern);
+  return Array.from(
+    new Set([...matches].map((match) => match[0].replace(/:/g, "")))
+  );
+}

@@ -17,6 +17,10 @@ const createKnexConfig = (dbName: string): Knex.Config => ({
     database: dbName,
     port: parseInt(process.env.DATA_DB_PORT || "", 10) || 5432,
   },
+  pool: {
+    min: 2,
+    max: 10,
+  },
 });
 
 // Get an array of database names from the DATABASE_NAMES environment variable
