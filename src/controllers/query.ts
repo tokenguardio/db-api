@@ -29,7 +29,8 @@ export const saveQuery = async (
 
   const decodedQuery = Buffer.from(query, "base64").toString("utf8");
 
-  const valuePattern = /:\w+\b(?!\:)/g; // Matches :var but not :var:
+  // Matches :var but not :var:
+  const valuePattern = /(?<!:):\b\w+\b(?!\:)/g;
   const extractedValueNames = extractQueryParameters(
     decodedQuery,
     valuePattern
@@ -49,7 +50,8 @@ export const saveQuery = async (
     }
   }
 
-  const identifierPattern = /:\w+:/g; // Matches :var:
+  // Matches :var:
+  const identifierPattern = /(?<!:):\b\w+\b(?=:)/g;
   const extractedIdentifiers = extractQueryParameters(
     decodedQuery,
     identifierPattern
