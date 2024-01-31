@@ -184,7 +184,7 @@ export const executeQuery = async (
     });
 
     const result = await dataDbQueryService.executeQuery(
-      externalKnexConfigs[savedQuery.database],
+      savedQuery.database,
       sqlQuery,
       bindConfig
     );

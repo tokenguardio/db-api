@@ -18,7 +18,7 @@ const createKnexConfig = (dbName: string): Knex.Config => ({
     port: parseInt(process.env.DATA_DB_PORT || "", 10) || 5432,
   },
   pool: {
-    min: 2,
+    min: 0,
     max: 10,
   },
 });
@@ -27,7 +27,7 @@ const createKnexConfig = (dbName: string): Knex.Config => ({
 const databaseNames = (process.env.DATA_DB_NAMES || "").split(",");
 
 // Generate dynamic configurations for each database name
-const config: Configs = databaseNames.reduce(
+const externalConfigs: Configs = databaseNames.reduce(
   (configs: Configs, dbName: string) => {
     configs[dbName] = createKnexConfig(dbName);
     return configs;
@@ -35,4 +35,4 @@ const config: Configs = databaseNames.reduce(
   {}
 );
 
-export default config;
+export default externalConfigs;
