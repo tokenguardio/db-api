@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import knex from "knex";
-import externalKnexConfigs from "../../knexfile-external";
+import { externalKnexInstances } from "../db/knex-instances";
 
 export enum ChainName {
   AlephZero = "aleph-zero",
@@ -47,14 +46,14 @@ export const getGrowthIndex = async (
     startDate.setDate(startDate.getDate() - Number(daysAgo));
 
     // Construct and execute the query
-    const data = await knex(externalKnexConfigs["crosschain"])(tableName)
+    const data = await externalKnexInstances["crosschain"](tableName)
       .select(
-        knex(externalKnexConfigs["crosschain"]).raw(
+        externalKnexInstances["crosschain"].raw(
           `date_trunc('${interval}', "${dateColumn}") as interval`
         )
       )
       .select(
-        knex(externalKnexConfigs["crosschain"]).raw(
+        externalKnexInstances["crosschain"].raw(
           `${aggregateFunction}(DISTINCT "${aggregateColumn}") as aggregate`
         )
       )
@@ -88,9 +87,7 @@ export async function getGrowthIndexHistorical(
 
   try {
     // Query the database
-    const data = await knex(externalKnexConfigs["crosschain"])(
-      tableName as string
-    )
+    const data = await externalKnexInstances["crosschain"](tableName as string)
       .select([...columnArray, dateColumn as string, "chain"])
       .where(dateColumn as string, ">=", startDate)
       .whereIn("chain", chainsArray)
@@ -128,7 +125,7 @@ export async function getLatestGrowthIndexData(
 
   try {
     // Subquery to get the latest date for each chain
-    const latestDatesSubquery = knex(externalKnexConfigs["crosschain"])(
+    const latestDatesSubquery = externalKnexInstances["crosschain"](
       tableName as string
     )
       .select("chain")
@@ -138,7 +135,7 @@ export async function getLatestGrowthIndexData(
       .as("latest_dates");
 
     // Main query to get the full row data for the latest entries
-    const rawData = await knex(externalKnexConfigs["crosschain"])(
+    const rawData = await externalKnexInstances["crosschain"](
       tableName as string
     )
       .select([

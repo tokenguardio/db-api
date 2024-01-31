@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import knex from "knex";
-import externalKnexConfigs from "../../knexfile-external";
+import { externalKnexInstances } from "../../src/db/knex-instances";
 
 export const getAllDatabases = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
   try {
-    const databases = await knex(externalKnexConfigs["crosschain"]).raw(
+    const databases = await externalKnexInstances["crosschain"].raw(
       "SELECT datname FROM pg_database WHERE datistemplate = false;"
     );
     return res.status(200).json({ databases: databases.rows });
@@ -22,7 +22,7 @@ export const getAllSchemas = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const schemas = await knex(externalKnexConfigs["crosschain"]).raw(
+    const schemas = await externalKnexInstances["crosschain"].raw(
       "SELECT schema_name FROM information_schema.schemata;"
     );
 
@@ -38,7 +38,7 @@ export const getAllTables = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const tables = await knex(externalKnexConfigs["crosschain"]).raw(
+    const tables = await externalKnexInstances["crosschain"].raw(
       "SELECT table_schema, table_name FROM information_schema.tables WHERE table_schema NOT IN ('information_schema', 'pg_catalog');"
     );
 
@@ -56,7 +56,7 @@ export const getTableColumns = async (
   const { schemaName, tableName } = req.params;
 
   try {
-    const columns = await knex(externalKnexConfigs["crosschain"]).raw(
+    const columns = await externalKnexInstances["crosschain"].raw(
       `
       SELECT column_name, data_type, is_nullable
       FROM information_schema.columns

@@ -1,4 +1,4 @@
-import type { Knex } from "knex";
+import { Knex } from "knex";
 import dotenv from "dotenv";
 
 dotenv.config({ path: ".env" });
@@ -7,7 +7,7 @@ interface KnexConfigMap {
   [key: string]: Knex.Config;
 }
 
-const config: KnexConfigMap = {
+const internalConfigs: KnexConfigMap = {
   development: {
     client: "postgresql",
     connection: {
@@ -18,7 +18,7 @@ const config: KnexConfigMap = {
       port: parseInt(process.env.QUERIES_DB_PORT || "", 10) || 5432,
     },
     pool: {
-      min: 2,
+      min: 0,
       max: 10,
     },
     migrations: {
@@ -35,7 +35,7 @@ const config: KnexConfigMap = {
       port: parseInt(process.env.QUERIES_DB_PORT || "", 10) || 5432,
     },
     pool: {
-      min: 2,
+      min: 0,
       max: 10,
     },
     migrations: {
@@ -44,10 +44,4 @@ const config: KnexConfigMap = {
   },
 };
 
-// Export the configuration based on the NODE_ENV value
-const exportedConfig =
-  process.env.NODE_ENV === "production"
-    ? config["production"]
-    : config["development"];
-
-export default exportedConfig;
+export default internalConfigs;
