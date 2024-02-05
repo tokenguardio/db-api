@@ -84,3 +84,16 @@ export const executeQueryValidation = {
     parameters: parametersSchema.optional(),
   }),
 };
+
+// Validation schema for the path parameter 'id'
+const pathParamSchema = Joi.object({
+  id: Joi.number().integer().required().messages({
+    "number.base": "ID must be a number",
+    "number.integer": "ID must be an integer",
+    "any.required": "ID is required",
+  }),
+});
+
+export const getQueryByIdValidation = {
+  params: pathParamSchema,
+};

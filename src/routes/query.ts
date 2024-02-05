@@ -4,6 +4,7 @@ import { validate } from "../middleware/joiValidate";
 import {
   saveQueryValidation,
   executeQueryValidation,
+  getQueryByIdValidation,
 } from "../validation/queryValidations";
 
 const router = Router();
@@ -183,6 +184,115 @@ router.post(
   "/execute-query",
   validate(executeQueryValidation),
   apiController.executeQuery
+);
+
+/**
+ * @openapi
+ * /query/{id}:
+ *   get:
+ *     summary: Retrieve a Saved SQL Query
+ *     description: Retrieves the details of a previously saved SQL query using its unique identifier.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The unique identifier of the saved query to retrieve.
+ *     responses:
+ *       200:
+ *         description: Query retrieved successfully. Returns the details of the query.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       description: The unique identifier of the query.
+ *                       example: 212
+ *                     query:
+ *                       type: string
+ *                       description: The SQL query string.
+ *                       example: "SELECT * FROM :tableName: WHERE :columnName: = :ticker1 OR :columnName: = :ticker2 OR :columnName: = :ticker2 OR :columnName: IN (:tickers) OR :columnName: IN (:tickers)"
+ *                     parameters:
+ *                       type: object
+ *                       properties:
+ *                         identifiers:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                           example: ["tableName", "columnName"]
+ *                         values:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               name:
+ *                                 type: string
+ *                               type:
+ *                                 type: string
+ *                           example: [
+ *                             { "name": "ticker1", "type": "string" },
+ *                             { "name": "ticker2", "type": "string" },
+ *                             { "name": "tickers", "type": "string[]" }
+ *                           ]
+ *                     database:
+ *                       type: string
+ *                       description: The name of the database where the query will be executed.
+ *                       example: "crosschain"
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2024-02-05T11:23:06.484Z"
+ *                     updated_at:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2024-02-05T11:23:06.484Z"
+ *                     label:
+ *                       type: string
+ *                       example: "growth_index"
+ *                 message:
+ *                   type: string
+ *                   example: "Query retrieved successfully"
+ *       400:
+ *         description: Invalid ID provided. This can occur if the ID is not a number.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid ID provided"
+ *       404:
+ *         description: Query not found. Occurs when there is no saved query with the provided ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Query not found"
+ *       500:
+ *         description: Server error or error retrieving the query.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Error occurred retrieving the query"
+ */
+router.get(
+  "/query/:id",
+  validate(getQueryByIdValidation),
+  apiController.getQueryById
 );
 
 export default router;
