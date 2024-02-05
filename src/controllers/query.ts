@@ -202,6 +202,30 @@ export const executeQuery = async (
   }
 };
 
+export const getQueryById = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const id = Number(req.params.id);
+
+  try {
+    const savedQuery = await queriesDbQueryService.getSavedQuery(id);
+
+    if (!savedQuery) {
+      return res.status(404).json({ message: "Query not found" });
+    }
+
+    return res
+      .status(200)
+      .json({ data: savedQuery, message: "Query retrieved successfully" });
+  } catch (error) {
+    console.error("Error retrieving the query:", error);
+    return res.status(500).json({
+      message: "Error occurred while retrieving the query",
+    });
+  }
+};
+
 const isValueOfType = (
   value: SingleValue | ValueArray,
   type: string
