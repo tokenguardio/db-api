@@ -1,7 +1,11 @@
 import type { Knex } from "knex";
 import dotenv from "dotenv";
+import { types } from "pg";
 
 dotenv.config({ path: ".env" });
+
+const DATE_OID = 1082;
+types.setTypeParser(DATE_OID, (val) => val);
 
 interface Configs {
   [key: string]: Knex.Config;
