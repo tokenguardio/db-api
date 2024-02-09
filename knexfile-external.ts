@@ -5,8 +5,9 @@ import { types } from "pg";
 dotenv.config({ path: ".env" });
 
 const DATE_OID = 1082;
+const BIGINT_OID = 20;
 types.setTypeParser(DATE_OID, (val) => val);
-
+types.setTypeParser(BIGINT_OID, 'text', parseInt);
 interface Configs {
   [key: string]: Knex.Config;
 }
