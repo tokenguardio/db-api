@@ -8,7 +8,8 @@ import { Request, Response, NextFunction } from "express";
 import swaggerDefinition from "./utils/swagger";
 import growthIndexRoutes from "./routes/growth-index";
 import queryRoutes from "./routes/query";
-import databaseDataRoutes from "./routes/databaseInfo";
+import databaseInfoRoutes from "./routes/databaseInfo";
+import chartDataRouters from "./routes/chartData";
 import logger from "./utils/logger";
 import { ApiError } from "./middleware/joiValidate";
 
@@ -44,7 +45,8 @@ app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Use routes
 app.use(growthIndexRoutes);
 app.use(queryRoutes);
-app.use(databaseDataRoutes);
+app.use(databaseInfoRoutes);
+app.use(chartDataRouters);
 
 app.use((err: ApiError, req: Request, res: Response, next: NextFunction) => {
   const statusCode = err.statusCode || 500;
