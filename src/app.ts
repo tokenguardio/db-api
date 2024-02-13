@@ -8,7 +8,7 @@ import { Request, Response, NextFunction } from "express";
 import swaggerDefinition from "./utils/swagger";
 import growthIndexRoutes from "./routes/growth-index";
 import queryRoutes from "./routes/query";
-import databaseDataRoutes from "./routes/database-data";
+import databaseDataRoutes from "./routes/databaseInfo";
 import logger from "./utils/logger";
 import { ApiError } from "./middleware/joiValidate";
 

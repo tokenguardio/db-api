@@ -3,7 +3,7 @@ import { Validation } from "./validationInterface";
 
 export const getTableColumnsValidation: Validation = {
   params: Joi.object({
-    schemaName: Joi.string().required(),
-    tableName: Joi.string().required(),
+    schema: Joi.string().required(),
+    table: Joi.string().required(),
   }),
 };

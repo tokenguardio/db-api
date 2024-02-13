@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as apiController from "../controllers/database-data";
+import * as apiController from "../controllers/databaseInfo";
 import { validate } from "../middleware/joiValidate";
 import { getTableColumnsValidation } from "../validation/databaseDataValidations";
 
@@ -76,19 +76,19 @@ router.get("/tables", apiController.getAllTables);
 
 /**
  * @openapi
- * /tables/{schemaName}/{tableName}/columns:
+ * /tables/{schema}/{table}/columns:
  *   get:
  *     summary: Retrieve columns of a table in a specific schema
  *     description: Retrieves a list of all columns from the specified table within a given schema.
  *     parameters:
  *       - in: path
- *         name: schemaName
+ *         name: schema
  *         required: true
  *         description: Name of the schema the table belongs to.
  *         schema:
  *           type: string
  *       - in: path
- *         name: tableName
+ *         name: table
  *         required: true
  *         description: Name of the table to retrieve columns from.
  *         schema:
@@ -118,7 +118,7 @@ router.get("/tables", apiController.getAllTables);
  *         description: Server error.
  */
 router.get(
-  "/tables/:schemaName/:tableName/columns",
+  "/tables/:schema/:table/columns",
   validate(getTableColumnsValidation),
   apiController.getTableColumns
 );
