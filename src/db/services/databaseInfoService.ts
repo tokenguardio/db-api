@@ -12,10 +12,11 @@ const fetchAllDatabases = async () => {
   }
 };
 
-const fetchAllSchemas = async () => {
-  const query = "SELECT schema_name FROM information_schema.schemata;";
+const fetchAllSchemas = async (dbname: string) => {
+  const query =
+    "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT LIKE 'pg_%'  -- Exclude system schemas starting with 'pg_' AND schema_name != 'information_schema';";
   try {
-    const result = await knex(externalKnexConfigs["crosschain"]).raw(query);
+    const result = await knex(externalKnexConfigs[dbname]).raw(query);
     return result.rows;
   } catch (error) {
     console.error("Error fetching schemas:", error);
@@ -23,11 +24,11 @@ const fetchAllSchemas = async () => {
   }
 };
 
-const fetchAllTables = async () => {
+const fetchAllTables = async (dbname: string) => {
   const query =
-    "SELECT table_schema, table_name FROM information_schema.tables WHERE table_schema NOT IN ('information_schema', 'pg_catalog');";
+    "SELECT table_schema, table_name FROM information_schema.tables WHERE table_schema NOT IN ('information_schema', 'pg_catalog') ORDER BY table_schema ASC;";
   try {
-    const result = await knex(externalKnexConfigs["crosschain"]).raw(query);
+    const result = await knex(externalKnexConfigs[dbname]).raw(query);
     return result.rows;
   } catch (error) {
     console.error("Error fetching tables:", error);
@@ -35,14 +36,18 @@ const fetchAllTables = async () => {
   }
 };
 
-const fetchTableColumns = async (schema: string, table: string) => {
+const fetchTableColumns = async (
+  dbname: string,
+  schema: string,
+  table: string
+) => {
   const query = `
       SELECT column_name, data_type, is_nullable
       FROM information_schema.columns
       WHERE table_name = ? AND table_schema = ?;
     `;
   try {
-    const result = await knex(externalKnexConfigs["crosschain"]).raw(query, [
+    const result = await knex(externalKnexConfigs[dbname]).raw(query, [
       table,
       schema,
     ]);

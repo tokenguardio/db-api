@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import * as chartDataService from "../db/services/chartDataService";
 
-const performGroupByOperation = async (req: Request, res: Response) => {
+const performGroupByOperation = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
   try {
     const { schema, table } = req.params;
     const { groupByColumns, aggregateColumns, filters } = req.body as {
@@ -17,13 +20,13 @@ const performGroupByOperation = async (req: Request, res: Response) => {
       aggregateColumns,
       filters
     );
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (error) {
     console.error("Error in controller performing group by operation:", error);
     if (error.message.startsWith("Invalid operator")) {
       return res.status(400).send({ message: error.message });
     }
-    res.status(500).send({ message: "Error performing group by operation" });
+    return res.status(500).send({ message: "Error performing group by operation" });
   }
 };
 

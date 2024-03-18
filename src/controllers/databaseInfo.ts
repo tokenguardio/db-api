@@ -18,17 +18,28 @@ const getAllSchemas = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
+  const { dbname } = req.params;
   try {
-    const schemas = await databaseInfoService.fetchAllSchemas();
+    const databases = await databaseInfoService.fetchAllDatabases();
+    const foundDatabase = databases.find(
+      (db: { datname: string }) => db.datname === dbname
+    );
+
+    if (!foundDatabase) {
+      return res.status(404).send(`Database ${dbname} not found`);
+    }
+    const schemas = await databaseInfoService.fetchAllSchemas(dbname);
     return res.status(200).json(schemas);
   } catch (error) {
     console.error("Error in controller fetching schemas:", error);
     return res.status(500).send("Error fetching schemas");
   }
 };
+
 const getAllTables = async (req: Request, res: Response): Promise<Response> => {
+  const { dbname } = req.params;
   try {
-    const tables = await databaseInfoService.fetchAllTables();
+    const tables = await databaseInfoService.fetchAllTables(dbname);
     return res.status(200).json(tables);
   } catch (error) {
     console.error("Error in controller fetching tables:", error);
@@ -40,11 +51,15 @@ const getTableColumns = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const { schema, table } = req.params;
+  const { dbname, schema, table } = req.params;
   console.log("schema, table", schema, table);
 
   try {
-    const columns = await databaseInfoService.fetchTableColumns(schema, table);
+    const columns = await databaseInfoService.fetchTableColumns(
+      dbname,
+      schema,
+      table
+    );
     return res.status(200).json(columns);
   } catch (error) {
     console.error(

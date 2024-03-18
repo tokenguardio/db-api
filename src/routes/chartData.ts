@@ -1,15 +1,23 @@
 import { Router } from "express";
 import * as apiController from "../controllers/chartData";
+import { validate } from "../middleware/joiValidate";
+import { groupByOperationValidation } from "../validation/chartDataValidations";
 
 const router = Router();
 
 /**
  * @openapi
- * /group-by-operation/{schema}/{table}:
+ * /group-by-operation/{dbname}/{schema}/{table}:
  *   post:
  *     summary: Perform a Group By operation with multiple grouping and aggregate columns, with optional filters
  *     description: Performs a SELECT with a GROUP BY operation on the specified table using multiple grouping columns and aggregate columns with respective operators, and optional filters.
  *     parameters:
+ *       - in: path
+ *         name: dbname
+ *         required: true
+ *         description: Name of the database.
+ *         schema:
+ *           type: string
  *       - in: path
  *         name: schema
  *         required: true
@@ -81,7 +89,8 @@ const router = Router();
  *         description: Server error.
  */
 router.post(
-  "/group-by-operation/:schema/:table",
+  "/group-by-operation/:dbname/:schema/:table",
+  validate(groupByOperationValidation),
   apiController.performGroupByOperation
 );
 

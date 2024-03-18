@@ -1,7 +1,11 @@
 import { Router } from "express";
 import * as apiController from "../controllers/databaseInfo";
 import { validate } from "../middleware/joiValidate";
-import { getTableColumnsValidation } from "../validation/databaseDataValidations";
+import {
+  getAllSchemasValidation,
+  getAllTablesValidation,
+  getTableColumnsValidation,
+} from "../validation/databaseDataValidations";
 
 const router = Router();
 
@@ -30,7 +34,7 @@ router.get("/databases", apiController.getAllDatabases);
 
 /**
  * @openapi
- * /schemas:
+ * /database/{dbname}/schemas:
  *   get:
  *     summary: Retrieve all schemas
  *     description: Retrieves a list of all schemas in the current database.
@@ -49,11 +53,15 @@ router.get("/databases", apiController.getAllDatabases);
  *       500:
  *         description: Server error.
  */
-router.get("/schemas", apiController.getAllSchemas);
+router.get(
+  "/database/:dbname/schemas",
+  validate(getAllSchemasValidation),
+  apiController.getAllSchemas
+);
 
 /**
  * @openapi
- * /tables:
+ * /database/{dbname}/tables:
  *   get:
  *     summary: Retrieve all tables
  *     description: Retrieves a list of all tables in the current database, excluding system tables.
@@ -72,15 +80,25 @@ router.get("/schemas", apiController.getAllSchemas);
  *       500:
  *         description: Server error.
  */
-router.get("/tables", apiController.getAllTables);
+router.get(
+  "/database/:dbname/tables",
+  validate(getAllTablesValidation),
+  apiController.getAllTables
+);
 
 /**
  * @openapi
- * /tables/{schema}/{table}/columns:
+ * /database/{dbname}/tables/{schema}/{table}/columns:
  *   get:
  *     summary: Retrieve columns of a table in a specific schema
  *     description: Retrieves a list of all columns from the specified table within a given schema.
  *     parameters:
+ *       - in: path
+ *         name: dbname
+ *         required: true
+ *         description: Name of the database.
+ *         schema:
+ *           type: string
  *       - in: path
  *         name: schema
  *         required: true
@@ -118,7 +136,7 @@ router.get("/tables", apiController.getAllTables);
  *         description: Server error.
  */
 router.get(
-  "/tables/:schema/:table/columns",
+  "/database/:dbname/tables/:schema/:table/columns",
   validate(getTableColumnsValidation),
   apiController.getTableColumns
 );
