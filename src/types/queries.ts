@@ -15,6 +15,7 @@ export type SaveQueryRequestBody = {
   database: string;
   label?: string;
   parameters?: SaveQueryParameters;
+  description?: string;
 };
 
 export type StoredValueParameter = SaveQueryValueParameter; // Same structure as SaveQueryValueParameter

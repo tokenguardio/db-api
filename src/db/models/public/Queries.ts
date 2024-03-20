@@ -21,6 +21,7 @@ export default interface Queries {
   updated_at: Date | null;
 
   label: string | null;
+  description: string | null;
 }
 
 /** Represents the initializer for the table public.queries */
@@ -41,6 +42,7 @@ export interface QueriesInitializer {
   updated_at?: Date | null;
 
   label?: string | null;
+  description?: string | null;
 }
 
 /** Represents the mutator for the table public.queries */
@@ -58,4 +60,5 @@ export interface QueriesMutator {
   updated_at?: Date | null;
 
   label?: string | null;
+  description?: string | null;
 }

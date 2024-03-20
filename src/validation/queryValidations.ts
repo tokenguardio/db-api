@@ -51,6 +51,7 @@ export const saveQueryValidation = {
           "array.unique": "Duplicate parameter names are not allowed",
         }),
     }).optional(), // parameters object itself is optional
+    description: Joi.string().optional().allow(null, ""),
   }),
 };
 

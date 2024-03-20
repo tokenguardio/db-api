@@ -68,6 +68,10 @@ const router = Router();
  *                     type:
  *                       type: string
  *                       example: "string"
+ *               description:  # Add this section
+ *                 type: string
+ *                 description: Optional descriptive text for the query.
+ *                 example: "This query retrieves the number of unique developers by contract type."
  *             example:
  *               query: "V0lUSCBvbmNoYWluX2RldmVsb3BlcnMgQVMgKHNlbGVjdCAqLCAnV0FTTScgYXMgY29udHJhY3RfdHlwZSBmcm9tIHN0Zy53YXNtX2NvbnRyYWN0c19jcmVhdGlvbnMKdW5pb24gYWxsCnNlbGVjdCAqLCAnRVZNJyBhcyBjb250cmFjdF90eXBlIGZyb20gc3RnLmV2bV9jb250cmFjdHNfY3JlYXRpb25zCikKU0VMRUNUCihEQVRFKCBkYXRlX3RydW5jKCd3ZWVrJywgb25jaGFpbl9kZXZlbG9wZXJzLiJkYXRlX29mX3JlY29yZCIpOjpkYXRlCgopKSBBUyAib25jaGFpbl9kZXZlbG9wZXJzLmR5bmFtaWNfdGltZWZyYW1lIiwKQ09VTlQoRElTVElOQ1Qgb25jaGFpbl9kZXZlbG9wZXJzLiJkZXBsb3llciIpICBBUyAib25jaGFpbl9kZXZlbG9wZXJzLnVuaXF1ZV9kZXZlbG9wZXJzIgpGUk9NIG9uY2hhaW5fZGV2ZWxvcGVycwpXSEVSRSAob25jaGFpbl9kZXZlbG9wZXJzLiJjb250cmFjdF90eXBlIiApIElOICg/LCA/KSBBTkQgKCgoIG9uY2hhaW5fZGV2ZWxvcGVycy4iZGF0ZV9vZl9yZWNvcmQiICApID49ICgoU0VMRUNUIChEQVRFX1RSVU5DKCdkYXknLCBDVVJSRU5UX1RJTUVTVEFNUCkgKyAoLTg5IHx8ICcgZGF5Jyk6OklOVEVSVkFMKSkpIEFORCAoIG9uY2hhaW5fZGV2ZWxvcGVycy4iZGF0ZV9vZl9yZWNvcmQiICApIDwgKChTRUxFQ1QgKChEQVRFX1RSVU5DKCdkYXknLCBDVVJSRU5UX1RJTUVTVEFNUCkgKyAoLTg5IHx8ICcgZGF5Jyk6OklOVEVSVkFMKSArICg5MCB8fCAnIGRheScpOjpJTlRFUlZBTCkpKSkpCkdST1VQIEJZCjEKT1JERVIgQlkKMQpGRVRDSCBORVhUIDUwMCBST1dTIE9OTFk="
  *               database: "astar_mainnet_squid"
@@ -76,6 +80,7 @@ const router = Router();
  *                   type: "string"
  *                 - name: "contractType2"
  *                   type: "string"
+ *               description: "This query retrieves the number of unique developers by contract type."
  *     responses:
  *       201:
  *         description: Query saved successfully. Returns the ID of the saved query.
