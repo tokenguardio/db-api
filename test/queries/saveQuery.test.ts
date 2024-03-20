@@ -54,6 +54,32 @@ describe("saveQuery Controller", () => {
     });
   });
 
+  it("should save a query with valid values, identifiers and description", async () => {
+    tracker.on("query", (query) => {
+      expect(query.method).toEqual("insert");
+      query.response([{ id: 3 }]);
+    });
+
+    const response = await supertest(app)
+      .post("/save-query")
+      .send({
+        query: Buffer.from(
+          "SELECT * FROM table WHERE :column: = :ticker1"
+        ).toString("base64"),
+        database: "astar_mainnet_squid",
+        parameters: {
+          values: [{ name: "ticker1", type: "string" }],
+        },
+        description: "descriptive descrption",
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({
+      data: { id: 3 },
+      message: "Query saved successfully",
+    });
+  });
+
   it("should return error for save query with identifiers", async () => {
     tracker.on("query", (query) => {
       expect(query.method).toEqual("insert");
