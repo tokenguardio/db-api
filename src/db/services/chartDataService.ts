@@ -71,6 +71,7 @@ function constructWhereClause(filters?: IFilterColumn[]): string {
 }
 
 const executeGroupByOperation = async (
+  dbname: string,
   schema: string,
   table: string,
   groupByColumns: IGroupByColumn[],
@@ -90,7 +91,7 @@ const executeGroupByOperation = async (
   console.log("query", query);
 
   try {
-    const result = await knex(externalKnexConfigs["crosschain"]).raw(query);
+    const result = await knex(externalKnexConfigs[dbname]).raw(query);
     return result.rows;
   } catch (error) {
     console.error("Error executing group by operation:", error);

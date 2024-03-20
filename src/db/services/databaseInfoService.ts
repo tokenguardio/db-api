@@ -5,7 +5,14 @@ const fetchAllDatabases = async () => {
   const query = "SELECT datname FROM pg_database WHERE datistemplate = false;";
   try {
     const result = await knex(externalKnexConfigs["crosschain"]).raw(query);
-    return result.rows;
+    const dataDbNames = process.env.DATA_DB_NAMES.split(",");
+
+    // Filter the result rows to include only databases that match supported databases
+    const filteredResults = result.rows.filter((row: {datname: string}) =>
+      dataDbNames.includes(row.datname)
+    );
+
+    return filteredResults;
   } catch (error) {
     console.error("Error fetching databases:", error);
     throw error;

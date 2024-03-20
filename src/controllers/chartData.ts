@@ -1,19 +1,28 @@
 import { Request, Response } from "express";
 import * as chartDataService from "../db/services/chartDataService";
+import * as databaseInfoService from "../db/services/databaseInfoService";
 
 const performGroupByOperation = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
   try {
-    const { schema, table } = req.params;
+    const { dbname, schema, table } = req.params;
     const { groupByColumns, aggregateColumns, filters } = req.body as {
       groupByColumns: chartDataService.IGroupByColumn[];
       aggregateColumns: chartDataService.IAggregateColumn[];
       filters?: chartDataService.IFilterColumn[];
     };
+    const databases = await databaseInfoService.fetchAllDatabases();
+    const foundDatabase = databases.find(
+      (db: { datname: string }) => db.datname === dbname
+    );
 
+    if (!foundDatabase) {
+      return res.status(404).send(`Database ${dbname} not found`);
+    }
     const result = await chartDataService.executeGroupByOperation(
+      dbname,
       schema,
       table,
       groupByColumns,

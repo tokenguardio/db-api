@@ -39,6 +39,14 @@ const getAllSchemas = async (
 const getAllTables = async (req: Request, res: Response): Promise<Response> => {
   const { dbname } = req.params;
   try {
+    const databases = await databaseInfoService.fetchAllDatabases();
+    const foundDatabase = databases.find(
+      (db: { datname: string }) => db.datname === dbname
+    );
+
+    if (!foundDatabase) {
+      return res.status(404).send(`Database ${dbname} not found`);
+    }
     const tables = await databaseInfoService.fetchAllTables(dbname);
     return res.status(200).json(tables);
   } catch (error) {
@@ -52,9 +60,17 @@ const getTableColumns = async (
   res: Response
 ): Promise<Response> => {
   const { dbname, schema, table } = req.params;
-  console.log("schema, table", schema, table);
+  console.log("dbname, schema, table", dbname, schema, table);
 
   try {
+    const databases = await databaseInfoService.fetchAllDatabases();
+    const foundDatabase = databases.find(
+      (db: { datname: string }) => db.datname === dbname
+    );
+
+    if (!foundDatabase) {
+      return res.status(404).send(`Database ${dbname} not found`);
+    }
     const columns = await databaseInfoService.fetchTableColumns(
       dbname,
       schema,
