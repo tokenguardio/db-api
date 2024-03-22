@@ -89,6 +89,16 @@ export const saveQuery = async (
   }
 };
 
+// function transformQueryResult210(result: any[]): any {
+//   return result.reduce((acc, { dimension_value, date, value }) => {
+//     if (!acc[dimension_value]) {
+//       acc[dimension_value] = [];
+//     }
+//     acc[dimension_value].push({ date, value });
+//     return acc;
+//   }, {});
+// }
+
 export const executeQuery = async (
   req: Request,
   res: Response
@@ -108,6 +118,8 @@ export const executeQuery = async (
 
     const { values: savedValues = [], identifiers: savedIdentifiers = [] } =
       savedQuery?.parameters ?? {};
+
+    console.log("log savedQuery", savedQuery?.parameters);
 
     const {
       values: providedValues = [],
@@ -189,6 +201,14 @@ export const executeQuery = async (
       bindConfig
     );
 
+    // if (id === 210) {
+    //   const transformedData = transformQueryResult210(result);
+    //   return res
+    //     .status(200)
+    //     .json({ data: transformedData, message: "Query executed" });
+    // } else {
+    //   return res.status(200).json({ data: result, message: "Query executed" });
+    // }
     return res.status(200).json({ data: result, message: "Query executed" });
   } catch (error) {
     console.error("Error executing the query:", error);

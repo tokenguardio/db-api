@@ -1,9 +1,23 @@
 import Joi from "joi";
 import { Validation } from "./validationInterface";
 
-export const getTableColumnsValidation: Validation = {
+export const getAllSchemasValidation: Validation = {
   params: Joi.object({
-    schemaName: Joi.string().required(),
-    tableName: Joi.string().required(),
+    dbname: Joi.string().required(),
   }),
 };
+
+export const getAllTablesValidation: Validation = {
+  params: Joi.object({
+    dbname: Joi.string().required(),
+  }),
+};
+
+export const getTableColumnsValidation: Validation = {
+  params: Joi.object({
+    dbname: Joi.string().required(),
+    schema: Joi.string().required(),
+    table: Joi.string().required(),
+  }),
+};
+
