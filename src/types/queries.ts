@@ -17,11 +17,28 @@ export type SaveQueryRequestBody = {
   parameters?: SaveQueryParameters;
 };
 
-export type StoredValueParameter = SaveQueryValueParameter; // Same structure as SaveQueryValueParameter
+export interface UpdateFields {
+  query?: string;
+  database?: string;
+  label?: string;
+  parameters?: string; // Assuming `parameters` is stored as a JSON string in the database.
+}
+
+export type StoredValueParameter = SaveQueryValueParameter;
 
 export type StoredParameters = {
   values: StoredValueParameter[];
   identifiers: string[]; // Assuming identifiers are always strings
+};
+
+type StoredUpdateValueParameter = {
+  name: string;
+  value: string;
+};
+
+export type StoredUpdateParameters = {
+  values: StoredUpdateValueParameter[];
+  identifiers: string[];
 };
 
 export type ExecuteQueryValueParameter = {

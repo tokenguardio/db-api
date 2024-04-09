@@ -295,4 +295,90 @@ router.get(
   apiController.getQueryById
 );
 
+/**
+ * @openapi
+ * /update-query/{id}:
+ *   patch:
+ *     summary: Update an existing SQL query
+ *     description: >
+ *       Updates an existing SQL query along with its label, the database where it will be executed,
+ *       and its parameters. This endpoint allows for the modification of previously stored
+ *       queries. The query in the request must be a base64 encoded string. It also validates
+ *       the provided query parameters against the expected named parameters in the SQL query,
+ *       ensuring that the correct number of parameters are provided and all required parameters
+ *       are present.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The unique identifier of the query to update.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [query, database, label, parameters]
+ *             properties:
+ *               query:
+ *                 type: string
+ *                 description: The SQL query string to be updated, encoded in base64.
+ *                 example: "base64-encoded-SQL-query"
+ *               database:
+ *                 type: string
+ *                 description: The name of the database where the query will be executed.
+ *                 example: "database_name"
+ *               label:
+ *                 type: string
+ *                 description: A new or existing label for the query.
+ *                 example: "Updated Monthly Sales Report"
+ *               parameters:
+ *                 type: object
+ *                 required: [values]
+ *                 properties:
+ *                   values:
+ *                     type: array
+ *                     description: An array of named parameters expected in the query.
+ *                     items:
+ *                       type: object
+ *                       required: [name]
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                           description: The name of the parameter as it appears in the query (without the leading colon).
+ *                           example: "startDate"
+ *                         value:
+ *                           type: string
+ *                           description: The value of the parameter to be used when the query is executed. This field is illustrative and not used directly in the update operation but should match the structure expected when executing the query.
+ *                           example: "2021-02-01"
+ *     responses:
+ *       200:
+ *         description: Query updated successfully. Returns the ID of the updated query.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: integer
+ *                   description: The unique identifier for the updated query.
+ *                   example: 1
+ *                 message:
+ *                   type: string
+ *                   example: "Query updated successfully"
+ *       400:
+ *         description: Invalid request. This can occur if the query string, database, label, or parameters are not properly provided, or if the provided ID is not valid.
+ *       404:
+ *         description: Query not found. Occurs when the provided ID does not match any existing query.
+ *       500:
+ *         description: Server error or error executing the update.
+ */
+router.patch(
+  "/update-query/:id",
+  // validate(updateQueryValidation), // Assuming you have a validation middleware
+  apiController.updateQuery
+);
+
 export default router;

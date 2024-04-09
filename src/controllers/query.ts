@@ -10,6 +10,7 @@ import {
   SingleValue,
   ValueArray,
 } from "../types/queries";
+import { extractQueryParameters } from "../utils/queryUpdater";
 
 export const saveQuery = async (
   req: Request,
@@ -246,6 +247,46 @@ export const getQueryById = async (
   }
 };
 
+export const updateQuery = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const id = Number(req.params.id);
+    const { query: base64Query, database, label, parameters } = req.body;
+
+    // Decode the query if provided; otherwise, keep it undefined
+    const decodedQuery = base64Query
+      ? Buffer.from(base64Query, "base64").toString("utf8")
+      : undefined;
+
+    // Directly pass each parameter to the updateQuery function.
+    // Note: Since `updateQuery` expects `parameters` as StoredParameters but the controller
+    // receives it as a JSON string (or an object), you need to ensure it's in the correct format.
+    // This assumes `parameters` is already in the correct object format or undefined.
+    const updateResult = await queriesDbQueryService.updateQuery(
+      id,
+      decodedQuery,
+      database,
+      label,
+      parameters
+    );
+
+    if (updateResult) {
+      return res
+        .status(200)
+        .json({ id, message: "Query updated successfully" });
+    } else {
+      return res.status(500).json({ message: "Failed to update the query" });
+    }
+  } catch (error) {
+    console.error("Error processing the update:", error);
+    return res.status(500).json({
+      message: error.message || "Error occurred while updating the query",
+    });
+  }
+};
+
 const isValueOfType = (
   value: SingleValue | ValueArray,
   type: string
@@ -277,13 +318,3 @@ const isValueOfType = (
       return false;
   }
 };
-
-function extractQueryParameters(
-  decodedQuery: string,
-  pattern: RegExp
-): string[] {
-  const matches = decodedQuery.matchAll(pattern);
-  return Array.from(
-    new Set([...matches].map((match) => match[0].replace(/:/g, "")))
-  );
-}

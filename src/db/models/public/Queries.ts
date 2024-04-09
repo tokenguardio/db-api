@@ -6,6 +6,14 @@ import { StoredParameters } from "../../../types/queries";
 /** Identifier type for public.queries */
 export type QueriesId = number & { __brand: "QueriesId" };
 
+export interface QueryVersion {
+  query: string;
+  parameters: StoredParameters | null;
+  database: string;
+  label: string | null;
+  updated_at: Date; // Assuming each version will track when it was the current version.
+}
+
 /** Represents the table public.queries */
 export default interface Queries {
   id: QueriesId;
@@ -21,6 +29,7 @@ export default interface Queries {
   updated_at: Date | null;
 
   label: string | null;
+  version_history: QueryVersion[] | null;
 }
 
 /** Represents the initializer for the table public.queries */
