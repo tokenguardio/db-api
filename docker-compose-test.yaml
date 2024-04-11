@@ -15,7 +15,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - '8082:8082'
-    command: npm run start
+    command: ["sh", "-c", "./wait-for-it.sh postgres-test:5432 -- npm run migrate && npm run start"]
     volumes:
       - .:/app
     depends_on:

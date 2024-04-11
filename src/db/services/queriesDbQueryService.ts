@@ -36,46 +36,58 @@ export const updateQuery = async (
   parameters?: StoredParameters
 ): Promise<boolean> => {
   try {
-    // Fetch the current state of the query for version history
     const currentQuery = await internalKnexInstance("queries")
       .where("id", id)
       .first();
 
     if (!currentQuery) {
-      console.log("Query not found");
-      return false; // Query not found, indicate failure
+      console.log("[Model] Query not found for ID:", id);
+      return false;
+    }
+    console.log("[Model] Current query found:", currentQuery);
+
+    let versionHistory;
+    try {
+      versionHistory =
+        typeof currentQuery.version_history === "string"
+          ? JSON.parse(currentQuery.version_history)
+          : currentQuery.version_history || [];
+      console.log(
+        "[Model] Version history after checking type:",
+        versionHistory
+      );
+    } catch (error) {
+      console.error("[Model] Failed to parse version history:", error);
+      return false;
     }
 
-    // Prepare the current state as a new version history entry
     const newVersion = {
-      query: currentQuery.query,
-      database: currentQuery.database,
-      label: currentQuery.label,
-      parameters: currentQuery.parameters,
-      updatedAt: currentQuery.updated_at,
+      query: query || currentQuery.query,
+      database: database || currentQuery.database,
+      label: label || currentQuery.label,
+      parameters: parameters || currentQuery.parameters,
+      updatedAt: new Date(),
     };
+    console.log("[Model] Adding new version to history:", newVersion);
 
-    // Parse existing version history and add the new version
-    const versionHistory = currentQuery.version_history
-      ? [...currentQuery.version_history, newVersion]
-      : [newVersion];
+    versionHistory.push(newVersion);
 
-    // Construct the updates, including the new version history
     const updates = {
       ...(query !== undefined && { query }),
       ...(database !== undefined && { database }),
       ...(label !== undefined && { label }),
-      ...(parameters !== undefined && { parameters }), // Assuming direct assignment works with your DB setup
-      version_history: versionHistory, // Include the updated version history
+      ...(parameters !== undefined && { parameters }),
+      version_history: JSON.stringify(versionHistory),
       updated_at: new Date(),
     };
+    console.log("[Model] Updates to be applied:", updates);
 
-    // Execute the update operation
     await internalKnexInstance("queries").where("id", id).update(updates);
+    console.log("[Model] Update applied successfully for ID:", id);
 
-    return true; // Indicate success
+    return true;
   } catch (error) {
-    console.error("Error updating the query:", error);
-    return false; // Indicate failure due to an error
+    console.error("[Model] Error updating the query:", error);
+    return false;
   }
 };
