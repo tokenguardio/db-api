@@ -17,7 +17,7 @@ export const saveQuery = async (
   res: Response
 ): Promise<Response> => {
   const requestBody = req.body as SaveQueryRequestBody;
-  const { query, database, label, parameters } = requestBody;
+  const { query, database, label, parameters, description } = requestBody;
 
   const values = parameters?.values ?? [];
 
@@ -76,7 +76,8 @@ export const saveQuery = async (
       decodedQuery,
       database,
       label,
-      serializedParameters as any
+      serializedParameters as any,
+      description || null
     );
 
     return res

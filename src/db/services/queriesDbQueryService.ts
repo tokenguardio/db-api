@@ -6,7 +6,8 @@ export const saveQuery = async (
   query: string,
   database: string,
   label: string,
-  parameters: StoredParameters
+  parameters: StoredParameters,
+  description?: string
 ): Promise<Pick<Queries, "id">> => {
   const [result] = await internalKnexInstance("queries")
     .insert({
@@ -14,6 +15,7 @@ export const saveQuery = async (
       database,
       label,
       parameters,
+      description,
     })
     .returning("id");
 
