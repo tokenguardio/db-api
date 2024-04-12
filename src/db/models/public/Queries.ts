@@ -14,7 +14,7 @@ export default interface Queries {
 
   parameters: StoredParameters | null;
 
-  database: string;
+  databases: string;
 
   created_at: Date | null;
 
@@ -34,7 +34,7 @@ export interface QueriesInitializer {
 
   parameters?: StoredParameters | null;
 
-  database: string;
+  databases: string;
 
   /** Default value: CURRENT_TIMESTAMP */
   created_at?: Date | null;

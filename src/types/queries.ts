@@ -12,7 +12,7 @@ export type SaveQueryParameters = {
 
 export type SaveQueryRequestBody = {
   query: string;
-  database: string;
+  databases: string;
   label?: string;
   parameters?: SaveQueryParameters;
   description?: string;
@@ -60,6 +60,7 @@ export type ExecuteQueryParameters = {
 export type ExecuteQueryRequestBody = {
   id: number;
   parameters?: ExecuteQueryParameters;
+  database: string;
 };
 
 export interface BindConfig {

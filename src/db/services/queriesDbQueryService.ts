@@ -4,15 +4,19 @@ import { StoredParameters } from "queries";
 
 export const saveQuery = async (
   query: string,
-  database: string,
+  databases: string,
   label: string,
   parameters: StoredParameters,
   description?: string
 ): Promise<Pick<Queries, "id">> => {
+  const serializedDatabases = Array.isArray(databases)
+    ? JSON.stringify(databases)
+    : databases;
+
   const [result] = await internalKnexInstance("queries")
     .insert({
       query,
-      database,
+      databases: serializedDatabases,
       label,
       parameters,
       description,
@@ -33,7 +37,7 @@ export const getSavedQuery = async (id: number): Promise<Queries> => {
 export const updateQuery = async (
   id: number,
   query?: string,
-  database?: string,
+  databases?: string,
   label?: string,
   parameters?: StoredParameters
 ): Promise<boolean> => {
@@ -65,7 +69,7 @@ export const updateQuery = async (
 
     const currentVersion = {
       query: currentQuery.query,
-      database: currentQuery.database,
+      databases: currentQuery.databases,
       label: currentQuery.label,
       parameters: currentQuery.parameters,
       updatedAt: currentQuery.updated_at,
@@ -76,7 +80,7 @@ export const updateQuery = async (
 
     const newVersion = {
       query: query || currentQuery.query,
-      database: database || currentQuery.database,
+      databases: databases || currentQuery.databases,
       label: label || currentQuery.label,
       parameters: parameters || currentQuery.parameters,
       updatedAt: new Date(),
@@ -85,7 +89,7 @@ export const updateQuery = async (
 
     const updates = {
       ...(query !== undefined && { query }),
-      ...(database !== undefined && { database }),
+      ...(databases !== undefined && { databases }),
       ...(label !== undefined && { label }),
       ...(parameters !== undefined && { parameters }),
       version_history: JSON.stringify(versionHistory),
