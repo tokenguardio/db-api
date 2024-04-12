@@ -61,6 +61,17 @@ export const updateQuery = async (
       return false;
     }
 
+    const currentVersion = {
+      query: currentQuery.query,
+      database: currentQuery.database,
+      label: currentQuery.label,
+      parameters: currentQuery.parameters,
+      updatedAt: currentQuery.updated_at,
+    };
+    console.log("[Model] Adding current version to history:", currentVersion);
+
+    versionHistory.push(currentVersion);
+
     const newVersion = {
       query: query || currentQuery.query,
       database: database || currentQuery.database,
@@ -68,9 +79,7 @@ export const updateQuery = async (
       parameters: parameters || currentQuery.parameters,
       updatedAt: new Date(),
     };
-    console.log("[Model] Adding new version to history:", newVersion);
-
-    versionHistory.push(newVersion);
+    console.log("[Model] New version prepared:", newVersion);
 
     const updates = {
       ...(query !== undefined && { query }),
