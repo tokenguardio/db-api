@@ -11,6 +11,10 @@ import {
   ValueArray,
 } from "../types/queries";
 import { extractQueryParameters } from "../utils/queryUpdater";
+import {
+  constructSQLQuery,
+  selectDatabaseForQuery,
+} from "../db/helper/queryExecutor";
 
 export const saveQuery = async (
   req: Request,
@@ -179,57 +183,22 @@ export const executeQuery = async (
       }
     }
 
-    sqlQuery = savedQuery.query;
-
-    const uniqueArraySuffix = "_arr_";
-    providedValues.forEach((item) => {
-      if (Array.isArray(item.value)) {
-        item.value.forEach((val, index) => {
-          bindConfig[`${item.name}${uniqueArraySuffix}${index}`] = val;
-        });
-        sqlQuery = sqlQuery.replace(
-          new RegExp(`:${item.name}`, "g"),
-          item.value
-            .map((_, index) => `:${item.name}${uniqueArraySuffix}${index}`)
-            .join(", ")
-        );
-      } else {
-        bindConfig[item.name] = item.value;
-      }
-    });
+    sqlQuery = constructSQLQuery(savedQuery, providedValues, bindConfig);
 
     providedIdentifiers.forEach((item) => {
       bindConfig[item.name] = item.value;
     });
 
-    let targetDatabase = savedQuery.databases;
-    console.log("savedQuery.database", savedQuery.databases);
-    const availableDatabases = Array.isArray(targetDatabase)
-      ? targetDatabase
-      : [targetDatabase];
-
-    if (database) {
-      console.log("availableDatabases", availableDatabases);
-      if (!availableDatabases.includes(database)) {
-        return res.status(400).json({
-          message: `The specified database is not one of the available databases for this query: ${availableDatabases.join(
-            ", "
-          )}`,
-        });
-      }
-      targetDatabase = database;
-    } else if (availableDatabases.length > 1) {
-      return res.status(400).json({
-        message: `No database selected among the available databases: ${availableDatabases.join(
-          ", "
-        )}`,
-      });
-    } else {
-      targetDatabase = availableDatabases[0];
+    const { selectedDatabase, error } = selectDatabaseForQuery(
+      savedQuery,
+      database
+    );
+    if (error) {
+      return res.status(400).json({ message: error });
     }
 
     const result = await dataDbQueryService.executeQuery(
-      targetDatabase,
+      selectedDatabase,
       sqlQuery,
       bindConfig
     );
@@ -279,10 +248,10 @@ export const updateQuery = async (
     const id = Number(req.params.id);
     console.log(`[Controller] Updating query for ID: ${id}`);
 
-    const { query: base64Query, database, label, parameters } = req.body;
+    const { query: base64Query, databases, label, parameters } = req.body;
     console.log("[Controller] Received update request with:", {
       base64Query,
-      database,
+      databases,
       label,
       parameters,
     });
@@ -304,7 +273,7 @@ export const updateQuery = async (
     const updateResult = await queriesDbQueryService.updateQuery(
       id,
       decodedQuery,
-      database,
+      databases,
       label,
       parameters
     );
