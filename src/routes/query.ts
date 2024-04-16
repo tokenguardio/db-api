@@ -15,9 +15,19 @@ const router = Router();
  *   post:
  *     summary: Save a SQL query
  *     description: |
- *                   Saves a SQL query along with its parameters for later execution. This endpoint is useful for storing queries that can be dynamically executed with different parameters. The query must be a base64 encoded string.
- *                   You can specify one or more databases where the query can be executed.
- *                   The provided example shows how a query can be encoded and what parameters look like.
+ *                   Saves a SQL query along with its parameters for later execution. This endpoint is useful for storing queries that can be dynamically executed with different parameters. The query must be a base64 encoded string. For example, the following SQL query:
+ *                   ```
+ *                   WITH onchain_developers AS (select *, 'WASM' as contract_type from stg.wasm_contracts_creations
+ *                   union all
+ *                   select *, 'EVM' as contract_type from stg.evm_contracts_creations) SELECT (DATE( date_trunc('week', onchain_developers."date_of_record")::date)) AS "onchain_developers.dynamic_timeframe",
+ *                   COUNT(DISTINCT onchain_developers."deployer")  AS "onchain_developers.unique_developers"
+ *                   FROM onchain_developers
+ *                   WHERE (onchain_developers."contract_type" ) IN (?, ?) AND ((( onchain_developers."date_of_record"  ) >= ((SELECT (DATE_TRUNC('day', CURRENT_TIMESTAMP) + (-89 || ' day')::INTERVAL))) AND ( onchain_developers."date_of_record"  ) < ((SELECT ((DATE_TRUNC('day', CURRENT_TIMESTAMP) + (-89 || ' day')::INTERVAL) + (90 || ' day')::INTERVAL)))))
+ *                   GROUP BY 1
+ *                   ORDER BY 1
+ *                   FETCH NEXT 500 ROWS ONLY
+ *                   ```
+ *                   is encoded as the base64 string provided in the example. You can see two '?' parameters that can be filled later.
  *     requestBody:
  *       required: true
  *       content:
