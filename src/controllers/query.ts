@@ -10,20 +10,31 @@ import {
   SingleValue,
   ValueArray,
 } from "../types/queries";
+import { extractQueryParameters } from "../utils/queryUpdater";
+import {
+  constructSQLQuery,
+  selectDatabaseForQuery,
+} from "../db/helper/queryExecutor";
 
 export const saveQuery = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
   const requestBody = req.body as SaveQueryRequestBody;
-  const { query, database, label, parameters } = requestBody;
+  const { query, databases, label, parameters, description } = requestBody;
 
   const values = parameters?.values ?? [];
 
-  // Check if the specified database exists in pgInstances
-  if (!externalKnexConfigs[database]) {
+  // Handle databases being either a string or an array of strings
+  const databasesList = Array.isArray(databases) ? databases : [databases];
+
+  // Check if the specified databases exist in pgInstances
+  const allDatabasesExist = databasesList.every(
+    (db) => externalKnexConfigs[db]
+  );
+  if (!allDatabasesExist) {
     return res.status(400).json({
-      message: "Specified database is not available",
+      message: "One or more specified databases are not available",
     });
   }
 
@@ -70,12 +81,18 @@ export const saveQuery = async (
     ? JSON.stringify(parametersToStore)
     : null;
 
+  const serializedDatabases =
+    databasesList.length === 1
+      ? databasesList[0]
+      : JSON.stringify(databasesList);
+
   try {
     const queryId = await queriesDbQueryService.saveQuery(
       decodedQuery,
-      database,
+      serializedDatabases,
       label,
-      serializedParameters as any
+      serializedParameters as any,
+      description || null
     );
 
     return res
@@ -89,22 +106,16 @@ export const saveQuery = async (
   }
 };
 
-// function transformQueryResult210(result: any[]): any {
-//   return result.reduce((acc, { dimension_value, date, value }) => {
-//     if (!acc[dimension_value]) {
-//       acc[dimension_value] = [];
-//     }
-//     acc[dimension_value].push({ date, value });
-//     return acc;
-//   }, {});
-// }
-
 export const executeQuery = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
   const requestBody = req.body as ExecuteQueryRequestBody;
-  const { id, parameters = { values: [], identifiers: [] } } = requestBody;
+  const {
+    id,
+    parameters = { values: [], identifiers: [] },
+    database,
+  } = requestBody;
 
   let sqlQuery: string;
   const bindConfig: BindConfig = {};
@@ -119,7 +130,7 @@ export const executeQuery = async (
     const { values: savedValues = [], identifiers: savedIdentifiers = [] } =
       savedQuery?.parameters ?? {};
 
-    console.log("log savedQuery", savedQuery?.parameters);
+    console.log("log savedQuery", savedQuery);
 
     const {
       values: providedValues = [],
@@ -172,43 +183,26 @@ export const executeQuery = async (
       }
     }
 
-    sqlQuery = savedQuery.query;
-
-    const uniqueArraySuffix = "_arr_";
-    providedValues.forEach((item) => {
-      if (Array.isArray(item.value)) {
-        item.value.forEach((val, index) => {
-          bindConfig[`${item.name}${uniqueArraySuffix}${index}`] = val;
-        });
-        sqlQuery = sqlQuery.replace(
-          new RegExp(`:${item.name}`, "g"),
-          item.value
-            .map((_, index) => `:${item.name}${uniqueArraySuffix}${index}`)
-            .join(", ")
-        );
-      } else {
-        bindConfig[item.name] = item.value;
-      }
-    });
+    sqlQuery = constructSQLQuery(savedQuery, providedValues, bindConfig);
 
     providedIdentifiers.forEach((item) => {
       bindConfig[item.name] = item.value;
     });
 
+    const { selectedDatabase, error } = selectDatabaseForQuery(
+      savedQuery,
+      database
+    );
+    if (error) {
+      return res.status(400).json({ message: error });
+    }
+
     const result = await dataDbQueryService.executeQuery(
-      savedQuery.database,
+      selectedDatabase,
       sqlQuery,
       bindConfig
     );
 
-    // if (id === 210) {
-    //   const transformedData = transformQueryResult210(result);
-    //   return res
-    //     .status(200)
-    //     .json({ data: transformedData, message: "Query executed" });
-    // } else {
-    //   return res.status(200).json({ data: result, message: "Query executed" });
-    // }
     return res.status(200).json({ data: result, message: "Query executed" });
   } catch (error) {
     console.error("Error executing the query:", error);
@@ -246,6 +240,63 @@ export const getQueryById = async (
   }
 };
 
+export const updateQuery = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const id = Number(req.params.id);
+    console.log(`[Controller] Updating query for ID: ${id}`);
+
+    const { query: base64Query, databases, label, parameters } = req.body;
+    console.log("[Controller] Received update request with:", {
+      base64Query,
+      databases,
+      label,
+      parameters,
+    });
+
+    // Additional check for base64 encoding
+    if (
+      base64Query &&
+      !Buffer.from(base64Query, "base64").toString("base64") === base64Query
+    ) {
+      console.error("[Controller] Base64 query encoding is invalid");
+      return res.status(400).json({ message: "Invalid base64 query encoding" });
+    }
+
+    const decodedQuery = base64Query
+      ? Buffer.from(base64Query, "base64").toString("utf8")
+      : undefined;
+    console.log(`[Controller] Decoded query: ${decodedQuery}`);
+
+    const updateResult = await queriesDbQueryService.updateQuery(
+      id,
+      decodedQuery,
+      databases,
+      label,
+      parameters
+    );
+    console.log(`[Controller] Update result for ID ${id}:`, updateResult);
+
+    if (updateResult) {
+      return res
+        .status(200)
+        .json({ id, message: "Query updated successfully" });
+    } else {
+      console.log(
+        "[Controller] Update failed, possibly due to the query not being found."
+      );
+      return res.status(404).json({ message: "Query not found" });
+    }
+  } catch (error) {
+    console.error("[Controller] Error processing the update:", error);
+    return res.status(500).json({
+      message: error.message || "Error occurred while updating the query",
+    });
+  }
+};
+
 const isValueOfType = (
   value: SingleValue | ValueArray,
   type: string
@@ -277,13 +328,3 @@ const isValueOfType = (
       return false;
   }
 };
-
-function extractQueryParameters(
-  decodedQuery: string,
-  pattern: RegExp
-): string[] {
-  const matches = decodedQuery.matchAll(pattern);
-  return Array.from(
-    new Set([...matches].map((match) => match[0].replace(/:/g, "")))
-  );
-}
