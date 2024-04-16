@@ -38,7 +38,7 @@ describe("saveQuery Controller", () => {
         query: Buffer.from(
           "SELECT * FROM table WHERE :column: = :ticker1"
         ).toString("base64"),
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
         parameters: {
           values: [{ name: "ticker1", type: "string" }],
         },
@@ -62,7 +62,7 @@ describe("saveQuery Controller", () => {
             {
               id: createdQueryId,
               query: "SELECT * FROM table WHERE column = 'value'",
-              database: "example_database",
+              databases: "example_databases",
               label: "Example Query",
               parameters: JSON.stringify({ example: "parameter" }),
               version_history: JSON.stringify([]),
@@ -84,7 +84,7 @@ describe("saveQuery Controller", () => {
         query: Buffer.from(
           "SELECT * FROM table WHERE :column: = :ticker1"
         ).toString("base64"),
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
         parameters: {
           values: [{ name: "ticker1", type: "string" }],
         },
