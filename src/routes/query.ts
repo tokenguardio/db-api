@@ -372,10 +372,10 @@ router.get(
  *                 type: string
  *                 description: The SQL query string to be updated, encoded in base64.
  *                 example: "base64-encoded-SQL-query"
- *               database:
+ *               databases:
  *                 type: string
  *                 description: The name of the database where the query will be executed.
- *                 example: "database_name"
+ *                 example: "[crosschain]"
  *               label:
  *                 type: string
  *                 description: A new or existing label for the query.
