@@ -60,11 +60,19 @@ function selectDatabaseForQuery(
   if (Array.isArray(savedQuery.databases)) {
     availableDatabases = savedQuery.databases;
   } else {
+    let trimmedString = savedQuery.databases.trim();
+    // Remove possible leading and trailing brackets if not properly formatted as an array
+    if (trimmedString.startsWith("[") && trimmedString.endsWith("]")) {
+      trimmedString = trimmedString.slice(1, -1);
+    }
     try {
-      // Attempt to parse it as JSON to convert to an array
-      availableDatabases = JSON.parse(savedQuery.databases);
+      // Parse the trimmed and corrected string as JSON
+      availableDatabases = JSON.parse(`[${trimmedString}]`).map((db: string) =>
+        db.trim()
+      );
     } catch (error) {
-      availableDatabases = [savedQuery.databases];
+      // Split the string by commas if JSON parsing fails, assuming the string is comma-separated
+      availableDatabases = trimmedString.split(",").map((db) => db.trim());
     }
   }
 
@@ -72,7 +80,7 @@ function selectDatabaseForQuery(
 
   // Determine the appropriate database to use
   if (requestedDatabase) {
-    if (!availableDatabases.includes(requestedDatabase)) {
+    if (!availableDatabases.includes(requestedDatabase.trim())) {
       return {
         selectedDatabase: undefined,
         error: `The specified database ${requestedDatabase} is not one of the available databases for this query: ${availableDatabases.join(
@@ -80,7 +88,7 @@ function selectDatabaseForQuery(
         )}`,
       };
     }
-    return { selectedDatabase: requestedDatabase };
+    return { selectedDatabase: requestedDatabase.trim() };
   } else if (availableDatabases.length > 1) {
     return {
       selectedDatabase: undefined,
