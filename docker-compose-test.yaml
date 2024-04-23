@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
-  db-api:
+  db-api-test:
     build:
       context: .
       dockerfile: Dockerfile
