@@ -1,14 +1,24 @@
 version: "3.8"
 
 services:
+  postgres-test:
+    build:
+      context: .
+      dockerfile: test.Dockerfile
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
   db-api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dev.Dockerfile
     ports:
-      - "3000:3000"
-    command: npm run start
+      - '8082:8082'
+    command: ["sh", "-c", "./wait-for-it.sh postgres-test:5432 -- npm run migrate && npm run watch-node"]
     volumes:
-      - .:/app
+      - .:/usr/src/node-app
+    depends_on:
+      - postgres-test
     env_file:
-      - ./.env
+      - ./.env.development.local

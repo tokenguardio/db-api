@@ -41,10 +41,36 @@ describe("saveQuery Controller", () => {
         query: Buffer.from(
           "SELECT * FROM table WHERE :column: = :ticker1"
         ).toString("base64"),
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
         parameters: {
           values: [{ name: "ticker1", type: "string" }],
         },
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({
+      data: { id: 3 },
+      message: "Query saved successfully",
+    });
+  });
+
+  it("should save a query with valid values, identifiers and description", async () => {
+    tracker.on("query", (query) => {
+      expect(query.method).toEqual("insert");
+      query.response([{ id: 3 }]);
+    });
+
+    const response = await supertest(app)
+      .post("/save-query")
+      .send({
+        query: Buffer.from(
+          "SELECT * FROM table WHERE :column: = :ticker1"
+        ).toString("base64"),
+        databases: "astar_mainnet_squid",
+        parameters: {
+          values: [{ name: "ticker1", type: "string" }],
+        },
+        description: "descriptive descrption",
       });
 
     expect(response.status).toBe(201);
@@ -64,7 +90,7 @@ describe("saveQuery Controller", () => {
       .post("/save-query")
       .send({
         query: encodedQuery,
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
         parameters: {
           values: [
             { name: "ticker1", type: "string" },
@@ -88,7 +114,7 @@ describe("saveQuery Controller", () => {
       .post("/save-query")
       .send({
         query: encodedQuery,
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
         parameters: {
           values: [{ name: "missingParam", type: "string" }],
         },
@@ -110,7 +136,7 @@ describe("saveQuery Controller", () => {
       .post("/save-query")
       .send({
         query: Buffer.from("SELECT * FROM table").toString("base64"),
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
         parameters: {},
       });
 
@@ -131,7 +157,7 @@ describe("saveQuery Controller", () => {
       .post("/save-query")
       .send({
         query: Buffer.from("SELECT * FROM table").toString("base64"),
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
       });
 
     expect(response.status).toBe(201);
@@ -141,21 +167,21 @@ describe("saveQuery Controller", () => {
     });
   });
 
-  it("should return error for invalid database", async () => {
+  it("should return error for invalid databases", async () => {
     const response = await supertest(app).post("/save-query").send({
       query: encodedQuery,
-      database: "invalid_database",
+      databases: "invalid_databases",
     });
 
     expect(response.status).toBe(400);
     expect(response.body.message).toContain(
-      "Specified database is not available"
+      "One or more specified databases are not available"
     );
   });
 
   it("should return error for missing query parameter", async () => {
     const response = await supertest(app).post("/save-query").send({
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
     });
 
     expect(response.status).toBe(400);
@@ -168,7 +194,7 @@ describe("saveQuery Controller", () => {
       .post("/save-query")
       .send({
         query: encodedQuery,
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
         parameters: { values: [{ name: "test", type: "invalid_type" }] },
       });
 
@@ -184,7 +210,7 @@ describe("saveQuery Controller", () => {
       .post("/save-query")
       .send({
         query: encodedQuery,
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
         parameters: {
           values: [{ name: "name1", type: "string" }, { name: "name2" }],
         },
@@ -202,7 +228,7 @@ describe("saveQuery Controller", () => {
       .post("/save-query")
       .send({
         query: encodedQuery,
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
         parameters: {
           values: [{ name: "name1", type: "string" }, { type: "string" }],
         },
@@ -220,7 +246,7 @@ describe("saveQuery Controller", () => {
       .post("/save-query")
       .send({
         query: encodedQuery,
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
         parameters: {
           values: [
             { namw: "name1", type: "string" },
@@ -238,16 +264,16 @@ describe("saveQuery Controller", () => {
     expect(response.body.message).toContain( "\"name\" is required");
   });
 
-  it("should handle database errors gracefully", async () => {
+  it("should handle databases errors gracefully", async () => {
     tracker.on("query", (query) => {
-      query.reject(new Error("Database error"));
+      query.reject(new Error("Databases error"));
     });
 
     const response = await supertest(app)
       .post("/save-query")
       .send({
         query: Buffer.from("SELECT * FROM table").toString("base64"),
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
         parameters: {},
       });
 
@@ -264,7 +290,7 @@ describe("saveQuery Controller", () => {
         query: Buffer.from(
           "SELECT * FROM table WHERE :column: = :ticker1 OR :column: = :ticker2"
         ).toString("base64"),
-        database: "astar_mainnet_squid",
+        databases: "astar_mainnet_squid",
         parameters: {
           values: [
             { name: "ticker1", type: "string" },
@@ -282,7 +308,7 @@ describe("saveQuery Controller", () => {
   it("should return error for invalid base64 encoded query", async () => {
     const response = await supertest(app).post("/save-query").send({
       query: "aGVsbG9*W29ybGR@",
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
       parameters: [],
     });
 

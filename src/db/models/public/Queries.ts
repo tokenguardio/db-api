@@ -14,13 +14,15 @@ export default interface Queries {
 
   parameters: StoredParameters | null;
 
-  database: string;
+  databases: string;
 
   created_at: Date | null;
 
   updated_at: Date | null;
 
   label: string | null;
+  version_history: string | null;
+  description: string | null;
 }
 
 /** Represents the initializer for the table public.queries */
@@ -32,7 +34,7 @@ export interface QueriesInitializer {
 
   parameters?: StoredParameters | null;
 
-  database: string;
+  databases: string;
 
   /** Default value: CURRENT_TIMESTAMP */
   created_at?: Date | null;
@@ -41,6 +43,7 @@ export interface QueriesInitializer {
   updated_at?: Date | null;
 
   label?: string | null;
+  description?: string | null;
 }
 
 /** Represents the mutator for the table public.queries */
@@ -58,4 +61,5 @@ export interface QueriesMutator {
   updated_at?: Date | null;
 
   label?: string | null;
+  description?: string | null;
 }

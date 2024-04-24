@@ -41,7 +41,10 @@ app.options("*", cors());
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
+app.get("/swagger.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
 // Use routes
 app.use(growthIndexRoutes);
 app.use(queryRoutes);

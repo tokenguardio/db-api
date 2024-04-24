@@ -32,7 +32,7 @@ describe("executeQuery Controller", () => {
       id: 1,
       query: "SELECT * FROM test_table",
       parameters: {} as StoredParameters,
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
     };
 
     tracker.on("query", (query) => {
@@ -63,7 +63,7 @@ describe("executeQuery Controller", () => {
     const savedQueryData = {
       id: 1,
       query: "SELECT * FROM test_table",
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
     };
 
     tracker.on("query", (query) => {
@@ -113,9 +113,9 @@ describe("executeQuery Controller", () => {
     expect(response.body.message).toContain("Query not found");
   });
 
-  it("should handle database errors gracefully", async () => {
+  it("should handle databases errors gracefully", async () => {
     tracker.on("query", (query) => {
-      query.reject(new Error("Database error"));
+      query.reject(new Error("Databases error"));
     });
 
     const response = await supertest(app).post("/execute-query").send({
@@ -136,7 +136,7 @@ describe("executeQuery Controller", () => {
       parameters: {
         values: [{ name: "param1", type: "number" }],
       } as StoredParameters,
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
     };
 
     tracker.on("query", (query) => {
@@ -167,7 +167,7 @@ describe("executeQuery Controller", () => {
           { name: "param2", type: "string" },
         ],
       } as StoredParameters,
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
     };
 
     tracker.on("query", (query) => {
@@ -194,7 +194,7 @@ describe("executeQuery Controller", () => {
       parameters: {
         values: [{ name: "param1", type: "number" }],
       } as StoredParameters,
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
     };
 
     tracker.on("query", (query) => {
@@ -219,7 +219,7 @@ describe("executeQuery Controller", () => {
       parameters: {
         values: [{ name: "column", type: "string" }],
       } as StoredParameters,
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
     };
 
     tracker.on("query", (query) => {
@@ -253,7 +253,7 @@ describe("executeQuery Controller", () => {
       id: 1,
       query: "SELECT * FROM empty_table",
       parameters: {} as StoredParameters,
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
     };
 
     tracker.on("query", (query) => {
@@ -287,7 +287,7 @@ describe("executeQuery Controller", () => {
         ],
         identifiers: ["column1", "column2"],
       } as StoredParameters,
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
     };
 
     tracker.on("query", (query) => {
@@ -331,7 +331,7 @@ describe("executeQuery Controller", () => {
         ],
         identifiers: ["column1", "column2"],
       } as StoredParameters,
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
     };
 
     tracker.on("query", (query) => {
@@ -379,7 +379,7 @@ describe("executeQuery Controller", () => {
         ],
         identifiers: ["column1", "column2"],
       } as StoredParameters,
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
     };
 
     tracker.on("query", (query) => {
@@ -418,7 +418,7 @@ describe("executeQuery Controller", () => {
       parameters: {
         identifiers: ["column1"],
       } as StoredParameters,
-      database: "astar_mainnet_squid",
+      databases: "astar_mainnet_squid",
     };
 
     tracker.on("query", (query) => {

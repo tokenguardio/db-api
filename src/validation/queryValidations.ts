@@ -40,17 +40,24 @@ const queryParameterSchema = Joi.object({
 export const saveQueryValidation = {
   body: Joi.object({
     query: Joi.string().custom(base64Validator, "base64 validation").required(),
-    database: Joi.string().required(),
+    databases: Joi.alternatives()
+      .try(Joi.string(), Joi.array().items(Joi.string()))
+      .required()
+      .messages({
+        "alternatives.match":
+          "databases must be a string or an array of strings",
+      }),
     label: Joi.string().optional(),
     parameters: Joi.object({
       values: Joi.array()
         .items(queryParameterSchema)
-        .unique((a, b) => a.name === b.name) // Ensure unique names in parameters
+        .unique((a, b) => a.name === b.name)
         .optional()
         .messages({
           "array.unique": "Duplicate parameter names are not allowed",
         }),
-    }).optional(), // parameters object itself is optional
+    }).optional(),
+    description: Joi.string().optional().allow(null, ""),
   }),
 };
 
@@ -80,6 +87,7 @@ const parametersSchema = Joi.object({
 
 export const executeQueryValidation = {
   body: Joi.object({
+    database: Joi.string().optional(),
     id: Joi.number().required(),
     parameters: parametersSchema.optional(),
   }),
