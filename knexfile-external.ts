@@ -12,29 +12,38 @@ interface Configs {
   [key: string]: Knex.Config;
 }
 
-// Function to create a dynamic Knex configuration for a given database
-const createKnexConfig = (dbName: string): Knex.Config => ({
+const createKnexConfig = (dbName: string, directory?: string): Knex.Config => ({
   client: "postgresql",
   connection: {
     host: process.env.DATA_DB_HOST,
     user: process.env.DATA_DB_USER,
     password: process.env.DATA_DB_PASSWORD,
     database: dbName,
-    port: parseInt(process.env.DATA_DB_PORT || "", 10) || 5432,
+    port: parseInt(process.env.DATA_DB_PORT || "5432", 10),
   },
   pool: {
     min: 0,
     max: 10,
   },
+  migrations: {
+    directory: directory || "./migrations", // Use the default directory or a custom one
+    tableName: "knex_migrations",
+  },
 });
 
-// Get an array of database names from the DATABASE_NAMES environment variable
-const databaseNames = (process.env.DATA_DB_NAMES || "").split(",");
+const databaseNames =
+  process.env.NODE_ENV === "development"
+    ? ["crosschain"]
+    : (process.env.DATA_DB_NAMES || "").split(",");
 
-// Generate dynamic configurations for each database name
 const externalConfigs: Configs = databaseNames.reduce(
   (configs: Configs, dbName: string) => {
-    configs[dbName] = createKnexConfig(dbName);
+    const migrationsDirectory =
+      dbName === "crosschain" && process.env.NODE_ENV === "development"
+        ? "./migrations/externalDb"
+        : "./migrations";
+
+    configs[dbName] = createKnexConfig(dbName, migrationsDirectory);
     return configs;
   },
   {}

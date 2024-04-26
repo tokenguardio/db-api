@@ -22,9 +22,13 @@
     "watch-ts": "tsc -w",
     "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
     "migrate": "knex migrate:latest",
-    "kanel": "npx kanel"
+    "kanel": "npx kanel",
+    "migrate-external": "knex migrate:latest --env crosschain --knexfile knexfile-external.ts",
+    "load-blockchains": "ts-node src/scripts/loadBlockchains.ts",
+    "load-dapps": "ts-node src/scripts/loadDapps.ts"
   },
   "dependencies": {
+    "axios": "^1.6.8",
     "cors": "^2.8.5",
     "dotenv": "16.3.1",
     "errorhandler": "1.5.1",
@@ -33,10 +37,12 @@
     "http-status": "^1.7.3",
     "joi": "^17.11.0",
     "knex": "^3.1.0",
+    "node-fetch": "^3.3.2",
     "node-sql-parser": "^4.17.0",
     "pg": "^8.11.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
+    "uuid": "^9.0.1",
     "winston": "3.11.0"
   },
   "devDependencies": {
@@ -48,10 +54,12 @@
     "@types/knex": "^0.16.1",
     "@types/mock-knex": "^0.4.8",
     "@types/node": "^20.10",
+    "@types/node-fetch": "^2.6.11",
     "@types/pg": "^8.11.0",
     "@types/supertest": "^6.0.2",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
+    "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "6.15.0",
     "@typescript-eslint/parser": "6.15.0",
     "concurrently": "^8.2.2",

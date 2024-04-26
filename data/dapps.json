@@ -1,0 +1,353 @@
+[
+  {
+    "name": "ArtZero",
+    "slug": "artzero",
+    "blockchains": ["aleph-zero"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/beamswap.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Beamswap",
+    "slug": "beamswap",
+    "blockchains": ["moonbeam"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/beamswap.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Bit Hotel",
+    "slug": "bit-hotel",
+    "blockchains": ["moonbeam"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/placeholder.svg",
+    "active": false,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "BrainDex",
+    "slug": "braindex",
+    "blockchains": ["moonbeam"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/braindex.svg",
+    "active": false,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "DAM Finance",
+    "slug": "dam-finance",
+    "blockchains": ["moonbeam"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/damfinance.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "DappGate",
+    "slug": "dappgate",
+    "blockchains": ["moonbeam"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/dappgate.svg",
+    "active": false,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "DIBS",
+    "slug": "dibs",
+    "blockchains": ["aleph-zero"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/dibs.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Ink Whale",
+    "slug": "ink-whale",
+    "blockchains": ["aleph-zero"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/inkwhale.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Evrloot",
+    "slug": "evrloot",
+    "blockchains": ["moonbeam"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/evrloot.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Galxe",
+    "slug": "galxe",
+    "blockchains": ["moonbeam"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/galxe.svg",
+    "active": false,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Moonwell",
+    "slug": "moonwell",
+    "blockchains": ["moonbeam"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/moonwell.svg",
+    "active": false,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Solarflare",
+    "slug": "solarflare",
+    "blockchains": ["moonbeam"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/solarflare.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "StellaSwap",
+    "slug": "stellaswap",
+    "blockchains": ["moonbeam"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/stellaswap.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "tofuNFT",
+    "slug": "tofunft",
+    "blockchains": ["moonbeam"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/tofunft.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Wormhole",
+    "slug": "wormhole",
+    "blockchains": ["moonbeam"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/wormhole.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Arbswap",
+    "slug": "arbswap",
+    "blockchains": ["arbitrum"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/arbswap.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Piratenation",
+    "slug": "piratenation",
+    "blockchains": ["arbitrum"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/placeholder.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "RCPSwap",
+    "slug": "rcpswap",
+    "blockchains": ["arbitrum"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/rcpswap.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Sushi",
+    "slug": "sushi",
+    "blockchains": ["arbitrum"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/sushi.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Avalaunch",
+    "slug": "avalaunch",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/avalaunch.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Benqi",
+    "slug": "benqi",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/benqi.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Chikn",
+    "slug": "chikn",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/chikn.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Colony",
+    "slug": "colony",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/colony.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "DeltaPrime",
+    "slug": "deltaprime",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/deltaprime.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Echidna Finance",
+    "slug": "echidna-finance",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/echidna-finance.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Geode",
+    "slug": "geode",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/geode.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "GMX",
+    "slug": "gmx",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/gmx.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Gogopool",
+    "slug": "gogopool",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/gogopool.svg",
+    "active": false,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Hyperspace",
+    "slug": "hyperspace",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/hyperspace.svg",
+    "active": false,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Joepegs",
+    "slug": "joepegs",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/joepegs.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Pangolin Exchange",
+    "slug": "pangolin-exchange",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/pangolin-exchange.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Rise Online World",
+    "slug": "rise-online-world",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/rise-online-world.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Struct Finance",
+    "slug": "struct-finance",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/struct-finance.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Trader Joe",
+    "slug": "traderjoe",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/traderjoe.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "VaporDex",
+    "slug": "vapordex",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/vapordex.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Vector Finance",
+    "slug": "vector-finance",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/vector-finance.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Volta Club",
+    "slug": "volta-club",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/volta-club.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "WOOFi",
+    "slug": "woofi",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/woofi.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  },
+  {
+    "name": "Yield Yak",
+    "slug": "yield-yak",
+    "blockchains": ["avalanche"],
+    "icon": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/dapp-logo/svg/yield-yak.svg",
+    "active": true,
+    "dapp_growth_index": true,
+    "defi_growth_index": false
+  }
+]
