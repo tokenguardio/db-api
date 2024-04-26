@@ -1,0 +1,250 @@
+[
+  {
+    "name": "Aleph Zero",
+    "network": "Mainnet",
+    "slug": "aleph-zero",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/aleph-zero.svg",
+    "active": true,
+    "growthindex": true,
+    "dappgrowth": true,
+    "database": "azero_mainnet_squid"
+  },
+  {
+    "name": "Aleph Zero",
+    "network": "Testnet",
+    "slug": "aleph-zero-testnet",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/aleph-zero.svg",
+    "active": true,
+    "growthindex": false,
+    "dappgrowth": false,
+    "database": "azero_testnet_squid"
+  },
+  {
+    "name": "Astar",
+    "network": "Mainnet",
+    "slug": "astar",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/astar.svg",
+    "active": true,
+    "growthindex": false,
+    "dappgrowth": false,
+    "database": "astar_mainnet_squid"
+  },
+  {
+    "name": "Arbitrum",
+    "network": "Mainnet",
+    "slug": "arbitrum",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/arbitrum.svg",
+    "active": true,
+    "growthindex": true,
+    "dappgrowth": true,
+    "database": "arbitrum_mainnet_squid"
+  },
+  {
+    "name": "Avalanche",
+    "network": "Mainnet",
+    "slug": "avalanche",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/avalanche.svg",
+    "active": true,
+    "growthindex": true,
+    "dappgrowth": true,
+    "database": "avalanche_mainnet_squid"
+  },
+  {
+    "name": "Bifrost",
+    "network": "Mainnet",
+    "slug": "bifrost",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/bifrost.svg",
+    "active": false,
+    "growthindex": false,
+    "dappgrowth": false,
+    "database": "bifrost_mainnet_squid"
+  },
+  {
+    "name": "BSC",
+    "network": "Mainnet",
+    "slug": "bsc",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/bsc.svg",
+    "active": true,
+    "growthindex": true,
+    "dappgrowth": false,
+    "database": "bsc_mainnet_squid"
+  },
+  {
+    "name": "Edgeware",
+    "network": "Mainnet",
+    "slug": "edgeware",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/edgeware.svg",
+    "active": false,
+    "growthindex": false,
+    "dappgrowth": false,
+    "database": "edgeware_mainnet_squid"
+  },
+  {
+    "name": "Efinity",
+    "network": "Mainnet",
+    "slug": "efinity",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/efinity.svg",
+    "active": false,
+    "growthindex": false,
+    "dappgrowth": false
+  },
+  {
+    "name": "Ethereum",
+    "network": "Mainnet",
+    "slug": "ethereum",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/ethereum.svg",
+    "active": true,
+    "growthindex": true,
+    "dappgrowth": false,
+    "database": "ethereum_mainnet_squid"
+  },
+  {
+    "name": "Fantom",
+    "network": "Mainnet",
+    "slug": "fantom",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/fantom.svg",
+    "active": true,
+    "growthindex": true,
+    "dappgrowth": false,
+    "database": "fantom_mainnet_squid"
+  },
+  {
+    "name": "Injective",
+    "network": "Mainnet",
+    "slug": "injective",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/injective.svg",
+    "active": true,
+    "growthindex": false,
+    "dappgrowth": false,
+    "database": "injective_mainnet_squid"
+  },
+  {
+    "name": "Kava",
+    "network": "Mainnet",
+    "slug": "kava",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/kava.svg",
+    "active": true,
+    "growthindex": false,
+    "dappgrowth": false
+  },
+  {
+    "name": "Kusama",
+    "network": "Mainnet",
+    "slug": "kusama",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/kusama.svg",
+    "active": true,
+    "growthindex": false,
+    "dappgrowth": false,
+    "database": "kusama_mainnet_squid"
+  },
+  {
+    "name": "Moonbeam",
+    "network": "Mainnet",
+    "slug": "moonbeam",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/moonbeam.svg",
+    "active": true,
+    "growthindex": false,
+    "dappgrowth": true,
+    "database": "moonbeam_mainnet_squid"
+  },
+  {
+    "name": "NEAR",
+    "network": "Mainnet",
+    "slug": "near",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/near.svg",
+    "active": true,
+    "growthindex": true,
+    "dappgrowth": false,
+    "database": "near_mainnet_squid"
+  },
+  {
+    "name": "Nodle",
+    "network": "Mainnet",
+    "slug": "nodle",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/nodle.svg",
+    "active": false,
+    "growthindex": false,
+    "dappgrowth": false,
+    "database": "nodle_mainnet_squid"
+  },
+  {
+    "name": "Optimism",
+    "network": "Mainnet",
+    "slug": "optimism",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/optimism.svg",
+    "active": true,
+    "growthindex": true,
+    "dappgrowth": false,
+    "database": "optimism_mainnet_squid"
+  },
+  {
+    "name": "Pendulum",
+    "network": "Mainnet",
+    "slug": "pendulum",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/pendulum.svg",
+    "active": false,
+    "growthindex": false,
+    "dappgrowth": false,
+    "database": "pendulum_mainnet_squid"
+  },
+  {
+    "name": "Polygon",
+    "network": "Mainnet",
+    "slug": "polygon",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/polygon.svg",
+    "active": true,
+    "growthindex": true,
+    "dappgrowth": false,
+    "database": "polygon_mainnet_squid"
+  },
+  {
+    "name": "Polkadot",
+    "network": "Mainnet",
+    "slug": "polkadot",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/polkadot.svg",
+    "active": true,
+    "growthindex": false,
+    "dappgrowth": false,
+    "database": "polkadot_mainnet_squid"
+  },
+  {
+    "name": "Reef",
+    "network": "Mainnet",
+    "slug": "reef",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/reef.svg",
+    "active": true,
+    "growthindex": false,
+    "dappgrowth": false,
+    "database": "reef_mainnet_squid"
+  },
+  {
+    "name": "Solana",
+    "network": "Mainnet",
+    "slug": "solana",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/solana.svg",
+    "active": true,
+    "growthindex": true,
+    "dappgrowth": false,
+    "database": "solana_mainnet_squid"
+  },
+  {
+    "name": "THORChain",
+    "network": "Mainnet",
+    "slug": "thorchain",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/thorchain.svg",
+    "active": true,
+    "growthindex": false,
+    "dappgrowth": false,
+    "database": "thorchain_mainnet_squid"
+  },
+  {
+    "name": "Zeitgeist",
+    "network": "Mainnet",
+    "slug": "zeitgeist",
+    "logo": "https://tokenguard-prod-tgv2-server-staticfiles.s3.eu-west-1.amazonaws.com/blockchain-logo/svg/zeitgeist.svg",
+    "active": false,
+    "growthindex": false,
+    "dappgrowth": false,
+    "database": "zeitgeist_mainnet_squid"
+  }
+]

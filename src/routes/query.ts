@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as apiController from "../controllers/query";
+import * as queryController from "../controllers/query";
 import { validate } from "../middleware/joiValidate";
 import {
   saveQueryValidation,
@@ -121,7 +121,7 @@ const router = Router();
 router.post(
   "/save-query",
   validate(saveQueryValidation),
-  apiController.saveQuery
+  queryController.saveQuery
 );
 
 /**
@@ -229,7 +229,7 @@ router.post(
 router.post(
   "/execute-query",
   validate(executeQueryValidation),
-  apiController.executeQuery
+  queryController.executeQuery
 );
 
 /**
@@ -338,7 +338,7 @@ router.post(
 router.get(
   "/query/:id",
   validate(getQueryByIdValidation),
-  apiController.getQueryById
+  queryController.getQueryById
 );
 
 /**
@@ -424,7 +424,7 @@ router.get(
 router.patch(
   "/update-query/:id",
   // validate(updateQueryValidation), // Assuming you have a validation middleware
-  apiController.updateQuery
+  queryController.updateQuery
 );
 
 export default router;

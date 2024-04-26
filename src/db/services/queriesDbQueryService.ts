@@ -1,4 +1,4 @@
-import Queries from "../models/public/Queries";
+import Queries from "../models/public/Query";
 import { internalKnexInstance } from "../knex-instances";
 import { StoredParameters } from "queries";
 

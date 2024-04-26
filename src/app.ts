@@ -10,6 +10,9 @@ import growthIndexRoutes from "./routes/growth-index";
 import queryRoutes from "./routes/query";
 import databaseInfoRoutes from "./routes/databaseInfo";
 import chartDataRouters from "./routes/chartData";
+import dappDataRouters from "./routes/dapp";
+import blockchainDataRouters from "./routes/blockchain";
+
 import logger from "./utils/logger";
 import { ApiError } from "./middleware/joiValidate";
 
@@ -50,6 +53,8 @@ app.use(growthIndexRoutes);
 app.use(queryRoutes);
 app.use(databaseInfoRoutes);
 app.use(chartDataRouters);
+app.use(dappDataRouters);
+app.use(blockchainDataRouters);
 
 app.use((err: ApiError, req: Request, res: Response, next: NextFunction) => {
   const statusCode = err.statusCode || 500;

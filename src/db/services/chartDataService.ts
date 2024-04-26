@@ -91,6 +91,7 @@ const executeGroupByOperation = async (
   console.log("query", query);
 
   try {
+    console.log("log 1 dbname", dbname);
     const result = await knex(externalKnexConfigs[dbname]).raw(query);
     return result.rows;
   } catch (error) {
