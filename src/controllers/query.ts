@@ -303,15 +303,24 @@ const isValueOfType = (
 ): boolean => {
   switch (type) {
     case "number":
-      return typeof value === "number" && !isNaN(value);
+      return (
+        (typeof value === "number" || value === null) && !isNaN(value as number)
+      );
     case "string":
       return typeof value === "string";
     case "date":
-      return typeof value === "string" && !isNaN(Date.parse(value));
+      return (
+        (typeof value === "string" && !isNaN(Date.parse(value as string))) ||
+        value === null
+      );
     case "number[]":
       return (
         Array.isArray(value) &&
-        value.every((item) => typeof item === "number" && !isNaN(item))
+        value.every(
+          (item) =>
+            (typeof item === "number" || item === null) &&
+            !isNaN(item as number)
+        )
       );
     case "string[]":
       return (
@@ -321,7 +330,9 @@ const isValueOfType = (
       return (
         Array.isArray(value) &&
         value.every(
-          (item) => typeof item === "string" && !isNaN(Date.parse(item))
+          (item) =>
+            (typeof item === "string" && !isNaN(Date.parse(item as string))) ||
+            item === null
         )
       );
     default:

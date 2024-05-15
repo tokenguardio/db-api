@@ -70,6 +70,7 @@ const executeQueryParamSchema = Joi.object({
       Joi.date(),
       Joi.array().items(Joi.string(), Joi.number(), Joi.date())
     )
+    .allow(null)
     .required(),
 });
 
