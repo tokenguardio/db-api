@@ -7,7 +7,7 @@ const internalConfigs: KnexConfigMap = {
   development: {
     client: "postgresql",
     connection: {
-      host: process.env.DATA_DB_HOST || "localhost",
+      host: process.env.DATA_DB_HOST || "postgres",
       user: process.env.DATA_DB_USER || "postgres",
       password: process.env.DATA_DB_PASSWORD || "postgres",
       database: process.env.DATA_DB_NAMES || "azero_mainnet_squid",
