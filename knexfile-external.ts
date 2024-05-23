@@ -2,7 +2,7 @@ import type { Knex } from "knex";
 import dotenv from "dotenv";
 import { types } from "pg";
 
-dotenv.config({ path: ".env" });
+dotenv.config({ path: ".env.wasabi" });
 
 types.setTypeParser(types.builtins.DATE, (val) => val);
 types.setTypeParser(types.builtins.INT8, "text", parseInt);

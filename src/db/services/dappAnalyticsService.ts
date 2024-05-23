@@ -9,6 +9,7 @@ export const saveDapp = async (
 ): Promise<Pick<Dapps, "id">> => {
   try {
     const [result] = await externalKnexInstances["azero_mainnet_squid"]
+      .withSchema("dapp_analytics")
       .insert({
         name: dappData.name,
         logo: dappData.logo,
@@ -32,6 +33,7 @@ export const saveDapp = async (
 
 export const getDapp = async (id: string): Promise<Dapps | undefined> => {
   const dapp = await externalKnexInstances["azero_mainnet_squid"]
+    .withSchema("dapp_analytics")
     .from("dapps")
     .where("id", id)
     .first();
@@ -42,6 +44,7 @@ export const getDapp = async (id: string): Promise<Dapps | undefined> => {
 export const getAllDapps = async (): Promise<Dapps[] | undefined> => {
   try {
     const dapps = await externalKnexInstances["azero_mainnet_squid"]
+      .withSchema("dapp_analytics")
       .select()
       .from("dapps");
     return dapps;
@@ -57,6 +60,7 @@ export const updateDapp = async (
 ): Promise<boolean> => {
   try {
     const updateCount = await externalKnexInstances["azero_mainnet_squid"]
+      .withSchema("dapp_analytics")
       .from("dapps")
       .where("id", id)
       .update({
