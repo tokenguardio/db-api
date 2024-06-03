@@ -1,6 +1,47 @@
 import Joi from "joi";
+import { Abi as SubsquidAbi } from "@subsquid/ink-abi";
+import { decodeAddress } from "@polkadot/keyring";
 
-const abiSchema = Joi.object().pattern(Joi.string(), Joi.object());
+const substrateAddressValidator = Joi.extend((joi) => ({
+  type: "substrateAddress",
+  base: joi.string(),
+  messages: {
+    "substrateAddress.base": "{{#label}} must be a valid Substrate address",
+  },
+  validate(value, helpers) {
+    try {
+      decodeAddress(value);
+      return { value };
+    } catch (error) {
+      return { errors: helpers.error("substrateAddress.base") };
+    }
+  },
+}));
+
+const subsquidAbiValidator = Joi.extend((joi) => ({
+  type: "subsquidAbi",
+  base: joi.object(),
+  messages: {
+    "subsquidAbi.validate":
+      "{{#label}} does not conform to Subsquid ABI format",
+  },
+  validate(value, helpers) {
+    try {
+      new SubsquidAbi(value);
+      return { value };
+    } catch (error) {
+      return { errors: helpers.error("subsquidAbi.validate") };
+    }
+  },
+}));
+
+const abiSchema = Joi.array().items(
+  Joi.object({
+    name: Joi.string(),
+    address: substrateAddressValidator.substrateAddress().required(),
+    abi: subsquidAbiValidator.subsquidAbi().required(),
+  })
+);
 
 export const saveDappValidation = {
   body: Joi.object({
@@ -17,9 +58,7 @@ export const saveDappValidation = {
 export const getDappByIdValidation = {
   params: Joi.object({
     id: Joi.string()
-      .guid({
-        version: ["uuidv4"],
-      })
+      .guid({ version: ["uuidv4"] })
       .required(),
   }),
 };
