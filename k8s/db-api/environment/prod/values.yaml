@@ -1,5 +1,5 @@
 # values for db-api dev environment.
-ecrRegistry: ~
+ecrRegistry: 117632573168.dkr.ecr.eu-west-1.amazonaws.com
 eksEnvironment: tokenguard-prod
 
 imagePullSecrets: ~
@@ -27,7 +27,7 @@ dbapi:
     image:
       repository: "tokenguard-prod-db-api"
       pullPolicy: Always
-      tag: "latest"
+      tag: "a86cce991269bcaf81364a641c1b8fa2af3fdc25"
     replicaCount: 1
     env: 
       NODE_ENV: "production"

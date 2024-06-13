@@ -9,14 +9,14 @@ ingressExternal:
 
 ingressInternal:
   enabled: true
-  name: db-api-ingress-internal
+  name: db-api-new-ingress-internal
   rules:
-    - host: db-api.dev.tokenguard.io       
+    - host: db-api-new.dev.tokenguard.io       
       http:
         paths:        
         - backend:
             service:
-              name: db-api
+              name: db-api-new
               port:
                 number: 8082
           path: /
@@ -24,10 +24,11 @@ ingressInternal:
 
 dbapi:
   deployment:
+    name: db-api-new
     image:
       repository: "tokenguard-dev-db-api"
       pullPolicy: Always
-      tag: "464e70063c199efc0ac7d3e6729acc3984500ec6"
+      tag: "16cad79ef901ec439b34b84354bd2429293124f8"
     replicaCount: 1
     env: 
       NODE_ENV: "development"
@@ -38,4 +39,10 @@ dbapi:
       limits:
         memory: "2Gi"
         cpu: "2000m"   
+  service: 
+    name: db-api-new
+  configmap:
+    name: db-api-new
 
+secrets: 
+  name: db-api-new-secrets
