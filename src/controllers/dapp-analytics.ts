@@ -98,3 +98,18 @@ export const updateDapp = async (
     });
   }
 };
+
+export const getDappDataMetrics = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { id, metric } = req.params;
+
+  try {
+    const result = await dappService.getDappDataMetrics(id, metric, req.body);
+    return res.json(result);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};

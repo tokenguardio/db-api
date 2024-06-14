@@ -75,3 +75,38 @@ export const updateDappValidation = {
     abis: abiSchema,
   }),
 };
+
+export const dappDataMetricsValidation = {
+  params: Joi.object({
+    id: Joi.string()
+      .guid({ version: ["uuidv4"] })
+      .required(),
+    metric: Joi.string().valid("users", "transferred-tokens", "interactions"),
+  }),
+  body: Joi.object({
+    breakdown: Joi.boolean().default(false),
+    filters: Joi.array().items(
+      Joi.object({
+        name: Joi.string(),
+        type: Joi.string().valid("call", "event"),
+        args: Joi.object().pattern(
+          Joi.string(),
+          Joi.object({
+            type: Joi.string().valid("integer", "string", "boolean").required(),
+            conditions: Joi.array().items(
+              Joi.object({
+                operator: Joi.string()
+                  .valid(">", "<", ">=", "<=", "=", "!=")
+                  .required(),
+                value: Joi.alternatives()
+                  .try(Joi.number(), Joi.string(), Joi.boolean())
+                  .required(),
+              })
+            ),
+            value: Joi.alternatives().try(Joi.string(), Joi.boolean()),
+          })
+        ),
+      })
+    ),
+  }),
+};
