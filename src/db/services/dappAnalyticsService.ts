@@ -105,9 +105,11 @@ interface User {
 }
 
 interface ResultEntry {
-  day: Date;
+  dimension: string;
   contract?: string;
-  walletCount: number;
+  walletCount?: number;
+  interactions?: number;
+  totalTransfered?: number;
   wallets: User[];
 }
 type ResultArray = ResultEntry[][];
@@ -172,8 +174,8 @@ export const getDappDataMetrics = async (
         WHERE day + INTERVAL '1 day' <= CURRENT_DATE
     )
     SELECT 
-        date_series.day,
-        COALESCE(COUNT(DISTINCT dapp_analytics.dapp_activity.caller), 0) AS walletCount,
+        TO_CHAR(date_series.day, 'YYYY-MM-DD') AS dimension,
+        COALESCE(<<METRIC>>, 0) AS <<METRIC_ALIAS>>,
         ${
           filters.breakdown
             ? "COALESCE(dapp_analytics.dapp_activity.contract, 'Unknown') AS contract,"
@@ -194,10 +196,41 @@ export const getDappDataMetrics = async (
             ON DATE(dapp_analytics.dapp_activity.timestamp) = date_series.day
   `;
 
+  let metricQueryPart: string;
+  switch (metric) {
+    case "wallets":
+      metricQueryPart = `
+        COUNT(DISTINCT dapp_analytics.dapp_activity.caller)
+      `;
+      break;
+    case "transferred-tokens":
+      metricQueryPart = `
+        SUM(dapp_analytics.dapp_activity.value)
+      `;
+      break;
+    case "interactions":
+      metricQueryPart = `
+        COUNT(dapp_analytics.dapp_activity.timestamp)
+      `;
+      break;
+    default:
+      throw new Error("Invalid metric");
+  }
+
+  const metricAlias = {
+    wallets: "walletCount",
+    "transferred-tokens": "totalTransfered",
+    interactions: "interactions",
+  }[metric];
+
+  const baseQuery = commonQueryPart
+    .replace(/<<METRIC>>/g, metricQueryPart)
+    .replace(/<<METRIC_ALIAS>>/g, metricAlias);
+
   const results = [];
 
   for (const filter of filters.filters) {
-    const { query, values } = buildQuery(commonQueryPart, filter);
+    const { query, values } = buildQuery(baseQuery, filter);
 
     const finalQuery = `${query} ${
       filters.breakdown
@@ -229,10 +262,10 @@ const intersectResults = (arr: ResultArray): ResultEntry[] => {
   }
 
   const finalResult: ResultEntry[] = arr[0].map((entry1) => {
-    const day = entry1.day;
+    const dimension = entry1.dimension;
 
     const matchingEntries = arr.map((result) => {
-      return result.find((entry) => entry.day.getTime() === day.getTime());
+      return result.find((entry) => entry.dimension === dimension);
     });
 
     const addresses = matchingEntries.reduce(
@@ -256,11 +289,20 @@ const intersectResults = (arr: ResultArray): ResultEntry[] => {
       entry ? entry.contract !== "Unknown" : false
     )?.contract;
 
+    const dynamicPropertyName = Object.keys(entry1).find(
+      (key) => key !== "dimension" && key !== "wallets"
+    );
+
+    // Prepare the final entry object
     const finalEntry: ResultEntry = {
-      day: entry1.day,
-      walletCount: matchingWallets.length,
+      dimension: entry1.dimension,
       wallets: matchingWallets,
     };
+
+    // Assign the dynamic property if found in entry1
+    if (dynamicPropertyName) {
+      finalEntry[dynamicPropertyName] = matchingWallets.length;
+    }
 
     if (contract && contract !== "Unknown") {
       finalEntry.contract = contract;
