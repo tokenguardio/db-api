@@ -9,7 +9,7 @@ export const saveDapp = async (
   dappData: DappsInitializer
 ): Promise<Pick<Dapps, "id">> => {
   try {
-    const [result] = await externalKnexInstances["dbapi"]
+    const [result] = await externalKnexInstances["azero_mainnet_squid"]
       .withSchema("dapp_analytics")
       .insert({
         name: dappData.name,
@@ -33,7 +33,7 @@ export const saveDapp = async (
 };
 
 export const getDapp = async (id: string): Promise<Dapps | undefined> => {
-  const dapp = await externalKnexInstances["dbapi"]
+  const dapp = await externalKnexInstances["azero_mainnet_squid"]
     .withSchema("dapp_analytics")
     .from("dapps")
     .where("id", id)
@@ -44,7 +44,7 @@ export const getDapp = async (id: string): Promise<Dapps | undefined> => {
 
 export const getAllDapps = async (): Promise<Dapps[] | undefined> => {
   try {
-    const dapps = await externalKnexInstances["dbapi"]
+    const dapps = await externalKnexInstances["azero_mainnet_squid"]
       .withSchema("dapp_analytics")
       .select()
       .from("dapps");
@@ -60,7 +60,7 @@ export const updateDapp = async (
   dappData: DappsMutator
 ): Promise<boolean> => {
   try {
-    const updateCount = await externalKnexInstances["dbapi"]
+    const updateCount = await externalKnexInstances["azero_mainnet_squid"]
       .withSchema("dapp_analytics")
       .from("dapps")
       .where("id", id)
@@ -107,11 +107,10 @@ interface User {
 interface ResultEntry {
   day: Date;
   contract?: string;
-  user_count: number;
-  users: User[];
+  walletCount: number;
+  wallets: User[];
 }
 type ResultArray = ResultEntry[][];
-
 
 const buildQuery = (
   baseQuery: string,
@@ -174,7 +173,7 @@ export const getDappDataMetrics = async (
     )
     SELECT 
         date_series.day,
-        COALESCE(COUNT(DISTINCT dapp_analytics.dapp_activity.caller), 0) AS user_count,
+        COALESCE(COUNT(DISTINCT dapp_analytics.dapp_activity.caller), 0) AS walletCount,
         ${
           filters.breakdown
             ? "COALESCE(dapp_analytics.dapp_activity.contract, 'Unknown') AS contract,"
@@ -187,7 +186,7 @@ export const getDappDataMetrics = async (
                 ELSE '[]'::jsonb
             END,
             '[]'::jsonb
-        ) AS users
+        ) AS wallets
     FROM 
         date_series
     LEFT JOIN 
@@ -221,14 +220,6 @@ export const getDappDataMetrics = async (
   }
 
   const combinedResult = intersectResults(results);
-
-  // Transform combinedResult to include 'users' array
-  // console.log(combinedResult[0].users);
-  // const transformedResult = combinedResult.map((row) => ({
-  //   ...row,
-  //   users: row.users,
-  // }));
-
   return combinedResult;
 };
 
@@ -248,16 +239,16 @@ const intersectResults = (arr: ResultArray): ResultEntry[] => {
       (intersection, entry) => {
         if (!entry) return intersection;
 
-        const entryAddresses = entry.users.map((user) => user.address);
+        const entryAddresses = entry.wallets.map((user) => user.address);
 
         return intersection.filter((address) =>
           entryAddresses.includes(address)
         );
       },
-      entry1.users.map((user) => user.address)
+      entry1.wallets.map((user) => user.address)
     );
 
-    const matchingUsers = entry1.users.filter((user) =>
+    const matchingWallets = entry1.wallets.filter((user) =>
       addresses.includes(user.address)
     );
 
@@ -267,8 +258,8 @@ const intersectResults = (arr: ResultArray): ResultEntry[] => {
 
     const finalEntry: ResultEntry = {
       day: entry1.day,
-      user_count: matchingUsers.length,
-      users: matchingUsers,
+      walletCount: matchingWallets.length,
+      wallets: matchingWallets,
     };
 
     if (contract && contract !== "Unknown") {

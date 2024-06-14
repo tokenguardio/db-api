@@ -12,7 +12,7 @@ const router = Router();
 
 /**
  * @swagger
- * /dapp-analytics/:
+ * /dapp-analytics/dapp:
  *   post:
  *     summary: Save a new dapp
  *     tags: [Dapp Analytics]
@@ -179,7 +179,7 @@ router.patch(
  *           type: string
  *       - name: metric
  *         in: path
- *         description: Metric to retrieve (e.g., 'users', 'transferred-tokens', 'interactions')
+ *         description: Metric to retrieve (e.g., 'wallets', 'transferred-tokens', 'interactions')
  *         required: true
  *         schema:
  *           type: string
@@ -237,10 +237,10 @@ router.patch(
  *                     type: string
  *                     format: date-time
  *                     example: "2024-03-17T00:00:00.000Z"
- *                   user_count:
+ *                   walletCount:
  *                     type: integer
  *                     example: 1
- *                   users:
+ *                   wallets:
  *                     type: array
  *                     items:
  *                       type: object
