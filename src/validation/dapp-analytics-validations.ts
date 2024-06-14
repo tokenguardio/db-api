@@ -81,7 +81,7 @@ export const dappDataMetricsValidation = {
     id: Joi.string()
       .guid({ version: ["uuidv4"] })
       .required(),
-    metric: Joi.string().valid("wallets", "transferred-tokens", "interactions"),
+    metric: Joi.string().valid("wallets", "transferredTokens", "interactions"),
   }),
   body: Joi.object({
     breakdown: Joi.boolean().default(false),

@@ -100,18 +100,13 @@ interface Filters {
   args?: Record<string, DecodedArgFilter>;
 }
 
-interface User {
-  address: string;
-}
-
 interface ResultEntry {
+  addresses: string[];
   dimension: string;
   contract?: string;
-  walletCount?: number;
-  interactions?: number;
-  totalTransfered?: number;
-  wallets: User[];
+  [key: string]: any;
 }
+
 type ResultArray = ResultEntry[][];
 
 const buildQuery = (
@@ -175,7 +170,7 @@ export const getDappDataMetrics = async (
     )
     SELECT 
         TO_CHAR(date_series.day, 'YYYY-MM-DD') AS dimension,
-        COALESCE(<<METRIC>>, 0) AS <<METRIC_ALIAS>>,
+        COALESCE(<<METRIC>>, 0) AS ${metric},
         ${
           filters.breakdown
             ? "COALESCE(dapp_analytics.dapp_activity.contract, 'Unknown') AS contract,"
@@ -184,11 +179,11 @@ export const getDappDataMetrics = async (
         COALESCE(
             CASE 
                 WHEN COUNT(DISTINCT dapp_analytics.dapp_activity.caller) > 0 
-                THEN JSON_AGG(DISTINCT JSON_BUILD_OBJECT('address', dapp_analytics.dapp_activity.caller)::jsonb)::jsonb
+                  THEN JSON_AGG(DISTINCT dapp_analytics.dapp_activity.caller)::jsonb
                 ELSE '[]'::jsonb
             END,
             '[]'::jsonb
-        ) AS wallets
+        ) AS addresses
     FROM 
         date_series
     LEFT JOIN 
@@ -203,7 +198,7 @@ export const getDappDataMetrics = async (
         COUNT(DISTINCT dapp_analytics.dapp_activity.caller)
       `;
       break;
-    case "transferred-tokens":
+    case "transferredTokens":
       metricQueryPart = `
         SUM(dapp_analytics.dapp_activity.value)
       `;
@@ -217,17 +212,9 @@ export const getDappDataMetrics = async (
       throw new Error("Invalid metric");
   }
 
-  const metricAlias = {
-    wallets: "walletCount",
-    "transferred-tokens": "totalTransfered",
-    interactions: "interactions",
-  }[metric];
+  const baseQuery = commonQueryPart.replace(/<<METRIC>>/g, metricQueryPart);
 
-  const baseQuery = commonQueryPart
-    .replace(/<<METRIC>>/g, metricQueryPart)
-    .replace(/<<METRIC_ALIAS>>/g, metricAlias);
-
-  const results = [];
+  const results: ResultEntry[][] = [];
 
   for (const filter of filters.filters) {
     const { query, values } = buildQuery(baseQuery, filter);
@@ -246,17 +233,17 @@ export const getDappDataMetrics = async (
         finalQuery,
         values
       );
-      results.push(result.rows);
+      results.push(result.rows as ResultEntry[]);
     } catch (error) {
       throw new Error(`Error executing query: ${error.message}`);
     }
   }
 
-  const combinedResult = intersectResults(results);
+  const combinedResult = intersectResults(results, metric);
   return combinedResult;
 };
 
-const intersectResults = (arr: ResultArray): ResultEntry[] => {
+const intersectResults = (arr: ResultArray, metric: string): ResultEntry[] => {
   if (!arr || arr.length === 0) {
     return [];
   }
@@ -268,41 +255,35 @@ const intersectResults = (arr: ResultArray): ResultEntry[] => {
       return result.find((entry) => entry.dimension === dimension);
     });
 
-    const addresses = matchingEntries.reduce(
+    const addresses = matchingEntries.reduce<string[]>(
       (intersection, entry) => {
         if (!entry) return intersection;
 
-        const entryAddresses = entry.wallets.map((user) => user.address);
+        console.log(`Entry: ${JSON.stringify(entry, null, 2)}`);
+        console.log(`Intersection: ${JSON.stringify(intersection)}`);
 
+        const entryAddresses = entry.addresses || [];
         return intersection.filter((address) =>
           entryAddresses.includes(address)
         );
       },
-      entry1.wallets.map((user) => user.address)
+      entry1.addresses || []
     );
 
-    const matchingWallets = entry1.wallets.filter((user) =>
-      addresses.includes(user.address)
+    const matchingAddresses = (entry1.addresses || []).filter((address) =>
+      addresses.includes(address)
     );
 
     const contract = matchingEntries.find((entry) =>
       entry ? entry.contract !== "Unknown" : false
     )?.contract;
 
-    const dynamicPropertyName = Object.keys(entry1).find(
-      (key) => key !== "dimension" && key !== "wallets"
-    );
-
     // Prepare the final entry object
     const finalEntry: ResultEntry = {
       dimension: entry1.dimension,
-      wallets: matchingWallets,
+      addresses: matchingAddresses,
     };
-
-    // Assign the dynamic property if found in entry1
-    if (dynamicPropertyName) {
-      finalEntry[dynamicPropertyName] = matchingWallets.length;
-    }
+    finalEntry[metric] = matchingAddresses.length;
 
     if (contract && contract !== "Unknown") {
       finalEntry.contract = contract;

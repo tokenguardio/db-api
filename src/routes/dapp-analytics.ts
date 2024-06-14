@@ -179,7 +179,7 @@ router.patch(
  *           type: string
  *       - name: metric
  *         in: path
- *         description: Metric to retrieve (e.g., 'wallets', 'transferred-tokens', 'interactions')
+ *         description: Metric to retrieve (e.g., 'wallets', 'transferredTokens', 'interactions')
  *         required: true
  *         schema:
  *           type: string
