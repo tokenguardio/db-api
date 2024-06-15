@@ -40,4 +40,19 @@ const externalConfigs: Configs = databaseNames.reduce(
   {}
 );
 
+externalConfigs[process.env.DAPP_ANALYTICS_DB_NAME] = {
+  client: "postgresql",
+  connection: {
+    host: process.env.DAPP_ANALYTICS_DB_HOST,
+    user: process.env.DAPP_ANALYTICS_DB_USER,
+    password: process.env.DAPP_ANALYTICS_DB_PASSWORD,
+    database: process.env.DAPP_ANALYTICS_DB_NAME,
+    port: parseInt(process.env.DAPP_ANALYTICS_DB_PORT || "", 10) || 5432,
+  },
+  pool: {
+    min: 0,
+    max: 10,
+  },
+};
+
 export default externalConfigs;

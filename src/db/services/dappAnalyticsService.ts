@@ -9,7 +9,9 @@ export const saveDapp = async (
   dappData: DappsInitializer
 ): Promise<Pick<Dapps, "id">> => {
   try {
-    const [result] = await externalKnexInstances["azero_mainnet_squid"]
+    const [result] = await externalKnexInstances[
+      process.env.DAPP_ANALYTICS_DB_NAME
+    ]
       .withSchema("dapp_analytics")
       .insert({
         name: dappData.name,
@@ -33,7 +35,7 @@ export const saveDapp = async (
 };
 
 export const getDapp = async (id: string): Promise<Dapps | undefined> => {
-  const dapp = await externalKnexInstances["azero_mainnet_squid"]
+  const dapp = await externalKnexInstances[process.env.DAPP_ANALYTICS_DB_NAME]
     .withSchema("dapp_analytics")
     .from("dapps")
     .where("id", id)
@@ -44,9 +46,19 @@ export const getDapp = async (id: string): Promise<Dapps | undefined> => {
 
 export const getAllDapps = async (): Promise<Dapps[] | undefined> => {
   try {
-    const dapps = await externalKnexInstances["azero_mainnet_squid"]
+    const dapps = await externalKnexInstances[
+      process.env.DAPP_ANALYTICS_DB_NAME
+    ]
       .withSchema("dapp_analytics")
-      .select()
+      .select(
+        "name",
+        "blockchain",
+        "logo",
+        "website",
+        "added_by",
+        "created_at",
+        "updated_at"
+      )
       .from("dapps");
     return dapps;
   } catch (error) {
@@ -60,7 +72,9 @@ export const updateDapp = async (
   dappData: DappsMutator
 ): Promise<boolean> => {
   try {
-    const updateCount = await externalKnexInstances["azero_mainnet_squid"]
+    const updateCount = await externalKnexInstances[
+      process.env.DAPP_ANALYTICS_DB_NAME
+    ]
       .withSchema("dapp_analytics")
       .from("dapps")
       .where("id", id)
@@ -229,10 +243,9 @@ export const getDappDataMetrics = async (
       console.log(`Final Query: ${finalQuery}`);
       console.log(`Values: ${values}`);
 
-      const result = await externalKnexInstances["azero_mainnet_squid"].raw(
-        finalQuery,
-        values
-      );
+      const result = await externalKnexInstances[
+        process.env.DAPP_ANALYTICS_DB_NAME
+      ].raw(finalQuery, values);
       results.push(result.rows as ResultEntry[]);
     } catch (error) {
       throw new Error(`Error executing query: ${error.message}`);
