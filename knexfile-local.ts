@@ -7,14 +7,14 @@ const internalConfigs: KnexConfigMap = {
   development: {
     client: "postgresql",
     connection: {
-      host: process.env.DATA_DB_HOST || "postgres",
-      user: process.env.DATA_DB_USER || "postgres",
-      password: process.env.DATA_DB_PASSWORD || "postgres",
-      database: process.env.DATA_DB_NAMES || "azero_mainnet_squid",
-      port: parseInt(process.env.DATA_DB_PORT || "", 10) || 5432,
+      host: process.env.DAPP_ANALYTICS_DB_HOST || "postgres",
+      user: process.env.DAPP_ANALYTICS_DB_USER || "postgres",
+      password: process.env.DAPP_ANALYTICS_DB_PASSWORD || "postgres",
+      database: process.env.DAPP_ANALYTICS_DB_NAMES || "dapp_analytics",
+      port: parseInt(process.env.DAPP_ANALYTICS_DB_PORT || "", 10) || 5432,
     },
     pool: {
-      min: 2,
+      min: 1,
       max: 10,
     },
     migrations: {

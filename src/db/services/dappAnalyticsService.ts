@@ -51,6 +51,7 @@ export const getAllDapps = async (): Promise<Dapps[] | undefined> => {
     ]
       .withSchema("dapp_analytics")
       .select(
+        "id",
         "name",
         "blockchain",
         "logo",
@@ -96,22 +97,25 @@ export const updateDapp = async (
   }
 };
 
-interface DecodedArgCondition {
+interface ArgCondition {
   operator: ">" | "<" | ">=" | "<=" | "=" | "!=" | string;
   value: number | string | boolean;
 }
 
-interface DecodedArgFilter {
+interface ArgFilter {
   type: "integer" | "string" | "boolean";
-  conditions?: DecodedArgCondition[];
+  conditions?: ArgCondition[];
   value?: string | boolean;
 }
 
-interface Filters {
+interface GetMetricsRequest {
+  breakdown?: boolean;
+  filters?: Filter[];
+}
+interface Filter {
   name?: string;
   type?: string;
-  breakdown?: boolean;
-  args?: Record<string, DecodedArgFilter>;
+  args?: Record<string, ArgFilter>;
 }
 
 interface ResultEntry {
@@ -124,19 +128,21 @@ interface ResultEntry {
 type ResultArray = ResultEntry[][];
 
 const buildQuery = (
+  dAppId: string,
   baseQuery: string,
-  filters: Filters
+  theFilter: Filter
 ): { query: string; values: any[] } => {
+  const dapp_activity_table = `"dapp_analytics"."dapp_analytics_${dAppId}"`;
   const conditions: string[] = [];
   const values: any[] = [];
 
-  if (filters.name) {
-    conditions.push("dapp_analytics.dapp_activity.name ILIKE ?");
-    values.push(`%${filters.name}%`);
+  if (theFilter.name) {
+    conditions.push(`${dapp_activity_table}.name ILIKE ?`);
+    values.push(`%${theFilter.name}%`);
   }
 
-  if (filters.args) {
-    for (const [key, filter] of Object.entries(filters.args)) {
+  if (theFilter.args) {
+    for (const [key, filter] of Object.entries(theFilter.args)) {
       if (filter.type === "integer" && filter.conditions) {
         for (const condition of filter.conditions) {
           if (condition.operator && condition.value !== undefined) {
@@ -156,9 +162,9 @@ const buildQuery = (
     }
   }
 
-  if (filters.type) {
-    conditions.push("dapp_analytics.dapp_activity.type = ?");
-    values.push(filters.type);
+  if (theFilter.type) {
+    conditions.push(`${dapp_activity_table}.type = ?`);
+    values.push(theFilter.type);
   }
 
   const whereClause =
@@ -170,10 +176,16 @@ const buildQuery = (
 };
 
 export const getDappDataMetrics = async (
-  id: string,
+  dAppId: string,
   metric: string,
-  filters: { breakdown: boolean; filters: Filters[] }
+  body: GetMetricsRequest
 ): Promise<object[]> => {
+  const defaultNoneFilter: Filter = {
+    name: null,
+    type: null,
+    args: {},
+  };
+  const dapp_activity_table = `"dapp_analytics"."dapp_analytics_${dAppId}"`;
   const commonQueryPart = `
     WITH RECURSIVE date_series AS (
         SELECT CURRENT_DATE - INTERVAL '89 days' AS day
@@ -186,14 +198,14 @@ export const getDappDataMetrics = async (
         TO_CHAR(date_series.day, 'YYYY-MM-DD') AS dimension,
         COALESCE(<<METRIC>>, 0) AS ${metric},
         ${
-          filters.breakdown
-            ? "COALESCE(dapp_analytics.dapp_activity.contract, 'Unknown') AS contract,"
+          body.breakdown
+            ? `COALESCE(${dapp_activity_table}.contract, 'Unknown') AS contract,`
             : ""
         }
         COALESCE(
             CASE 
-                WHEN COUNT(DISTINCT dapp_analytics.dapp_activity.caller) > 0 
-                  THEN JSON_AGG(DISTINCT dapp_analytics.dapp_activity.caller)::jsonb
+                WHEN COUNT(DISTINCT ${dapp_activity_table}.caller) > 0 
+                  THEN JSON_AGG(DISTINCT ${dapp_activity_table}.caller)::jsonb
                 ELSE '[]'::jsonb
             END,
             '[]'::jsonb
@@ -201,25 +213,25 @@ export const getDappDataMetrics = async (
     FROM 
         date_series
     LEFT JOIN 
-        dapp_analytics.dapp_activity 
-            ON DATE(dapp_analytics.dapp_activity.timestamp) = date_series.day
+        ${dapp_activity_table} 
+            ON DATE(${dapp_activity_table}.timestamp) = date_series.day
   `;
 
   let metricQueryPart: string;
   switch (metric) {
     case "wallets":
       metricQueryPart = `
-        COUNT(DISTINCT dapp_analytics.dapp_activity.caller)
+        COUNT(DISTINCT ${dapp_activity_table}.caller)
       `;
       break;
     case "transferredTokens":
       metricQueryPart = `
-        SUM(dapp_analytics.dapp_activity.value)
+        SUM(${dapp_activity_table}.value)
       `;
       break;
     case "interactions":
       metricQueryPart = `
-        COUNT(dapp_analytics.dapp_activity.timestamp)
+        COUNT(${dapp_activity_table}.timestamp)
       `;
       break;
     default:
@@ -230,13 +242,13 @@ export const getDappDataMetrics = async (
 
   const results: ResultEntry[][] = [];
 
-  for (const filter of filters.filters) {
-    const { query, values } = buildQuery(baseQuery, filter);
+  for (const filter of body.filters || [defaultNoneFilter]) {
+    const { query, values } = buildQuery(dAppId, baseQuery, filter);
 
     const finalQuery = `${query} ${
-      filters.breakdown
-        ? "GROUP BY date_series.day, dapp_analytics.dapp_activity.contract"
-        : "GROUP BY date_series.day, dapp_analytics.dapp_activity.type"
+      body.breakdown
+        ? `GROUP BY date_series.day, ${dapp_activity_table}.contract`
+        : `GROUP BY date_series.day, ${dapp_activity_table}.type`
     } ORDER BY date_series.day`;
 
     try {
