@@ -12,7 +12,6 @@ COPY --chown=node:node package*.json ./
 RUN npm install
 COPY --chown=node:node . .
 RUN npm run build
-RUN chmod +x entrypoint.sh
 
 EXPOSE 8082
-ENTRYPOINT ["./entrypoint.sh"]
+CMD ["npm", "run", "start"]

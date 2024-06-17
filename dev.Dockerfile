@@ -8,7 +8,6 @@ RUN npm install -g ts-node-dev
 
 COPY ./ ./
 RUN npm run build
-RUN chmod +x entrypoint.sh
 
 EXPOSE 8082
-ENTRYPOINT ["./entrypoint.sh"]
+CMD ["npm", "run", "start:dev"]
