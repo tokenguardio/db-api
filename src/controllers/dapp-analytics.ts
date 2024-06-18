@@ -66,6 +66,29 @@ export const getAllDapps = async (
   }
 };
 
+export const getDappIndexerStatus = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { id } = req.params;
+  try {
+    const dappStatus = await dappService.getDappIndexerStatus(id);
+    if (!dappStatus) {
+      return res.status(404).json({
+        message: "dApp not found",
+      });
+    }
+    return res
+      .status(200)
+      .json({ message: "dApp status read", output: {status: dappStatus }});
+  } catch (error) {
+    console.error("Error retrieving the dApp status:", error);
+    return res.status(500).json({
+      message: "Error occurred while retrieving the dApp status",
+    });
+  }
+};
+
 export const updateDapp = async (
   req: Request,
   res: Response

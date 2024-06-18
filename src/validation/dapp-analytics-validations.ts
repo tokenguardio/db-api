@@ -110,3 +110,11 @@ export const dappDataMetricsValidation = {
     ),
   }),
 };
+
+export const getDappIndexingStatusValidation = {
+  params: Joi.object({
+    id: Joi.string()
+      .guid({ version: ["uuidv4"] })
+      .required(),
+  }),
+};

@@ -97,6 +97,24 @@ export const updateDapp = async (
   }
 };
 
+export const getDappIndexerStatus = async (
+  id: string
+): Promise<Dapps | undefined> => {
+  try {
+    const dappStatus = await externalKnexInstances[
+      process.env.DAPP_ANALYTICS_DB_NAME
+    ]
+      .withSchema(`${id}_state`)
+      .from("status")
+      .select("height")
+      .first();
+    return dappStatus;
+  } catch (error) {
+    console.error("Error reading dApp status:", error);
+    return null;
+  }
+};
+
 interface ArgCondition {
   operator: ">" | "<" | ">=" | "<=" | "=" | "!=" | string;
   value: number | string | boolean;
@@ -130,41 +148,46 @@ type ResultArray = ResultEntry[][];
 const buildQuery = (
   dAppId: string,
   baseQuery: string,
-  theFilter: Filter
+  filters: Filter[]
 ): { query: string; values: any[] } => {
   const dapp_activity_table = `"dapp_analytics"."dapp_analytics_${dAppId}"`;
   const conditions: string[] = [];
   const values: any[] = [];
 
-  if (theFilter.name) {
-    conditions.push(`${dapp_activity_table}.name ILIKE ?`);
-    values.push(`%${theFilter.name}%`);
-  }
+  for (const filter of filters) {
+    if (filter.name) {
+      conditions.push(`${dapp_activity_table}.name ILIKE ?`);
+      values.push(`%${filter.name}%`);
+    }
 
-  if (theFilter.args) {
-    for (const [key, filter] of Object.entries(theFilter.args)) {
-      if (filter.type === "integer" && filter.conditions) {
-        for (const condition of filter.conditions) {
-          if (condition.operator && condition.value !== undefined) {
-            conditions.push(
-              `(decoded_args->>'${key}')::integer ${condition.operator} ?`
-            );
-            values.push(condition.value);
+    if (filter.args) {
+      for (const [key, argFilter] of Object.entries(filter.args)) {
+        if (argFilter.type === "integer" && argFilter.conditions) {
+          for (const condition of argFilter.conditions) {
+            if (condition.operator && condition.value !== undefined) {
+              conditions.push(
+                `(decoded_args->>'${key}')::integer ${condition.operator} ?`
+              );
+              values.push(condition.value);
+            }
           }
+        } else if (argFilter.type === "string" && argFilter.value) {
+          conditions.push(`decoded_args->>'${key}' ILIKE ?`);
+          values.push(`%${argFilter.value}%`);
+        } else if (
+          argFilter.type === "boolean" &&
+          argFilter.value !== undefined
+        ) {
+          conditions.push(`(decoded_args->>'${key}')::boolean = ?`);
+          values.push(argFilter.value);
         }
-      } else if (filter.type === "string" && filter.value) {
-        conditions.push(`decoded_args->>'${key}' ILIKE ?`);
-        values.push(`%${filter.value}%`);
-      } else if (filter.type === "boolean" && filter.value !== undefined) {
-        conditions.push(`(decoded_args->>'${key}')::boolean = ?`);
-        values.push(filter.value);
       }
     }
-  }
 
-  if (theFilter.type) {
-    conditions.push(`${dapp_activity_table}.type = ?`);
-    values.push(theFilter.type);
+    if (filter.type) {
+      conditions.push(`${dapp_activity_table}.type = ?`);
+      values.push(filter.type);
+    }
   }
 
   const whereClause =
@@ -185,6 +208,7 @@ export const getDappDataMetrics = async (
     type: null,
     args: {},
   };
+
   const dapp_activity_table = `"dapp_analytics"."dapp_analytics_${dAppId}"`;
   const commonQueryPart = `
     WITH RECURSIVE date_series AS (
@@ -240,82 +264,26 @@ export const getDappDataMetrics = async (
 
   const baseQuery = commonQueryPart.replace(/<<METRIC>>/g, metricQueryPart);
 
-  const results: ResultEntry[][] = [];
+  // Combine all filters into a single query
+  const filters = body.filters || [defaultNoneFilter];
+  const { query, values } = buildQuery(dAppId, baseQuery, filters);
 
-  for (const filter of body.filters || [defaultNoneFilter]) {
-    const { query, values } = buildQuery(dAppId, baseQuery, filter);
+  const finalQuery = `${query} ${
+    body.breakdown
+      ? `GROUP BY date_series.day, ${dapp_activity_table}.contract`
+      : `GROUP BY date_series.day, ${dapp_activity_table}.type`
+  } ORDER BY date_series.day`;
 
-    const finalQuery = `${query} ${
-      body.breakdown
-        ? `GROUP BY date_series.day, ${dapp_activity_table}.contract`
-        : `GROUP BY date_series.day, ${dapp_activity_table}.type`
-    } ORDER BY date_series.day`;
+  try {
+    console.log(`Final Query: ${finalQuery}`);
+    console.log(`Values: ${values}`);
 
-    try {
-      console.log(`Final Query: ${finalQuery}`);
-      console.log(`Values: ${values}`);
+    const result = await externalKnexInstances[
+      process.env.DAPP_ANALYTICS_DB_NAME
+    ].raw(finalQuery, values);
 
-      const result = await externalKnexInstances[
-        process.env.DAPP_ANALYTICS_DB_NAME
-      ].raw(finalQuery, values);
-      results.push(result.rows as ResultEntry[]);
-    } catch (error) {
-      throw new Error(`Error executing query: ${error.message}`);
-    }
+    return result.rows as ResultEntry[];
+  } catch (error) {
+    throw new Error(`Error executing query: ${error.message}`);
   }
-
-  const combinedResult = intersectResults(results, metric);
-  return combinedResult;
-};
-
-const intersectResults = (arr: ResultArray, metric: string): ResultEntry[] => {
-  if (!arr || arr.length === 0) {
-    return [];
-  }
-
-  const finalResult: ResultEntry[] = arr[0].map((entry1) => {
-    const dimension = entry1.dimension;
-
-    const matchingEntries = arr.map((result) => {
-      return result.find((entry) => entry.dimension === dimension);
-    });
-
-    const addresses = matchingEntries.reduce<string[]>(
-      (intersection, entry) => {
-        if (!entry) return intersection;
-
-        console.log(`Entry: ${JSON.stringify(entry, null, 2)}`);
-        console.log(`Intersection: ${JSON.stringify(intersection)}`);
-
-        const entryAddresses = entry.addresses || [];
-        return intersection.filter((address) =>
-          entryAddresses.includes(address)
-        );
-      },
-      entry1.addresses || []
-    );
-
-    const matchingAddresses = (entry1.addresses || []).filter((address) =>
-      addresses.includes(address)
-    );
-
-    const contract = matchingEntries.find((entry) =>
-      entry ? entry.contract !== "Unknown" : false
-    )?.contract;
-
-    // Prepare the final entry object
-    const finalEntry: ResultEntry = {
-      dimension: entry1.dimension,
-      addresses: matchingAddresses,
-    };
-    finalEntry[metric] = matchingAddresses.length;
-
-    if (contract && contract !== "Unknown") {
-      finalEntry.contract = contract;
-    }
-
-    return finalEntry;
-  });
-
-  return finalResult;
 };

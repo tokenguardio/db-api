@@ -6,6 +6,7 @@ import {
   getDappByIdValidation,
   updateDappValidation,
   dappDataMetricsValidation,
+  getDappIndexingStatusValidation,
 } from "../validation/dapp-analytics-validations";
 
 const router = Router();
@@ -99,6 +100,30 @@ router.get(
   "/dapp-analytics/dapp/:id",
   validate(getDappByIdValidation),
   dappController.getDapp
+);
+
+/**
+ * @swagger
+ * /dapp-analytics/{id}/status:
+ *   get:
+ *     summary: Get dApp indexing status
+ *     tags: [Dapp Analytics]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         required: true
+ *         description: The dapp ID
+ *     responses:
+ *       200:
+ *         description: dApp status retrieved successfully
+ */
+router.get(
+  "/dapp-analytics/dapp/:id/status",
+  validate(getDappIndexingStatusValidation),
+  dappController.getDappIndexerStatus
 );
 
 /**
