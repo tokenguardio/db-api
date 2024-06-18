@@ -97,6 +97,24 @@ export const updateDapp = async (
   }
 };
 
+export const getDappIndexerStatus = async (
+  id: string
+): Promise<Dapps | undefined> => {
+  try {
+    const dappStatus = await externalKnexInstances[
+      process.env.DAPP_ANALYTICS_DB_NAME
+    ]
+      .withSchema(`${id}_state`)
+      .from("status")
+      .select("height")
+      .first();
+    return dappStatus;
+  } catch (error) {
+    console.error("Error reading dApp status:", error);
+    return null;
+  }
+};
+
 interface ArgCondition {
   operator: ">" | "<" | ">=" | "<=" | "=" | "!=" | string;
   value: number | string | boolean;
