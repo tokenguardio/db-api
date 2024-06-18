@@ -2,7 +2,7 @@ import type { Knex } from "knex";
 import dotenv from "dotenv";
 import { types } from "pg";
 
-dotenv.config({ path: ".env" });
+dotenv.config({ path: ".env.wasabi" });
 
 types.setTypeParser(types.builtins.DATE, (val) => val);
 types.setTypeParser(types.builtins.INT8, "text", parseInt);
@@ -39,5 +39,20 @@ const externalConfigs: Configs = databaseNames.reduce(
   },
   {}
 );
+
+externalConfigs[process.env.DAPP_ANALYTICS_DB_NAME] = {
+  client: "postgresql",
+  connection: {
+    host: process.env.DAPP_ANALYTICS_DB_HOST,
+    user: process.env.DAPP_ANALYTICS_DB_USER,
+    password: process.env.DAPP_ANALYTICS_DB_PASSWORD,
+    database: process.env.DAPP_ANALYTICS_DB_NAME,
+    port: parseInt(process.env.DAPP_ANALYTICS_DB_PORT || "", 10) || 5432,
+  },
+  pool: {
+    min: 0,
+    max: 10,
+  },
+};
 
 export default externalConfigs;

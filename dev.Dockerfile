@@ -1,16 +1,13 @@
-
 FROM node:18-alpine
 
-RUN apk add --no-cache bash
-RUN mkdir -p /usr/src/node-app && chown -R node:node /usr/src/node-app
-WORKDIR /usr/src/node-app
-USER node
+WORKDIR /app
 
-COPY --chown=node:node package*.json ./
-
+COPY package*.json ./
 RUN npm install
-COPY --chown=node:node . .
+RUN npm install -g ts-node-dev
+
+COPY ./ ./
 RUN npm run build
 
 EXPOSE 8082
-CMD ["npm", "run", "watch-node"]
+CMD ["npm", "run", "start:dev"]
