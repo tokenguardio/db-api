@@ -143,8 +143,6 @@ interface ResultEntry {
   [key: string]: any;
 }
 
-type ResultArray = ResultEntry[][];
-
 const buildQuery = (
   dAppId: string,
   baseQuery: string,
@@ -282,7 +280,38 @@ export const getDappDataMetrics = async (
       process.env.DAPP_ANALYTICS_DB_NAME
     ].raw(finalQuery, values);
 
-    return result.rows as ResultEntry[];
+    const allDifferentials = new Set(
+      result.rows
+        .map((row) => row.contract)
+        .filter((contract) => contract !== "Unknown")
+    );
+
+    // Transform and fill missing entries
+    const transformedResult = [];
+    const dateMap = new Map();
+
+    for (const row of result.rows) {
+      const dimension = row.dimension;
+      const contract = row.contract || "Unknown";
+      const wallets = row.wallets;
+
+      if (!dateMap.has(dimension)) {
+        dateMap.set(dimension, new Map());
+      }
+      dateMap.get(dimension).set(contract, wallets);
+    }
+
+    for (const [dimension, contractsMap] of dateMap.entries()) {
+      for (const differential of allDifferentials) {
+        transformedResult.push({
+          dimension,
+          differential,
+          wallets: contractsMap.get(differential) || 0,
+        });
+      }
+    }
+
+    return transformedResult;
   } catch (error) {
     throw new Error(`Error executing query: ${error.message}`);
   }
