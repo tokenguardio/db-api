@@ -136,64 +136,470 @@ interface Filter {
   args?: Record<string, ArgFilter>;
 }
 
-interface ResultEntry {
-  addresses: string[];
-  dimension: string;
-  contract?: string;
-  [key: string]: any;
-}
+const generateDateSeries = (): string[] => {
+  const dates = [];
+  const currentDate = new Date();
+  for (let i = 0; i < 90; i++) {
+    const date = new Date(currentDate);
+    date.setDate(currentDate.getDate() - i);
+    dates.push(date.toISOString().split("T")[0]);
+  }
+  return dates.reverse();
+};
 
-const buildQuery = (
+const buildQueryForFilter = (
   dAppId: string,
-  baseQuery: string,
-  filters: Filter[]
+  filter: Filter,
+  breakdown: boolean,
+  metric: "wallets" | "interactions" | "transferredTokens"
 ): { query: string; values: any[] } => {
   const dapp_activity_table = `"dapp_analytics"."dapp_analytics_${dAppId}"`;
   const conditions: string[] = [];
   const values: any[] = [];
 
-  for (const filter of filters) {
-    if (filter.name) {
-      conditions.push(`${dapp_activity_table}.name ILIKE ?`);
-      values.push(`%${filter.name}%`);
-    }
+  if (filter.name) {
+    conditions.push(`${dapp_activity_table}.name ILIKE ?`);
+    values.push(`%${filter.name.replace("::", "_")}%`);
+  }
 
-    if (filter.args) {
-      for (const [key, argFilter] of Object.entries(filter.args)) {
-        if (argFilter.type === "integer" && argFilter.conditions) {
-          for (const condition of argFilter.conditions) {
-            if (condition.operator && condition.value !== undefined) {
-              conditions.push(
-                `(decoded_args->>'${key}')::integer ${condition.operator} ?`
-              );
-              values.push(condition.value);
-            }
+  if (filter.args) {
+    for (const [key, argFilter] of Object.entries(filter.args)) {
+      if (argFilter.type === "integer" && argFilter.conditions) {
+        for (const condition of argFilter.conditions) {
+          if (condition.operator && condition.value !== undefined) {
+            conditions.push(
+              `(decoded_args->>'${key}')::integer ${condition.operator} ?`
+            );
+            values.push(condition.value);
           }
-        } else if (argFilter.type === "string" && argFilter.value) {
-          conditions.push(`decoded_args->>'${key}' ILIKE ?`);
-          values.push(`%${argFilter.value}%`);
-        } else if (
-          argFilter.type === "boolean" &&
-          argFilter.value !== undefined
-        ) {
-          conditions.push(`(decoded_args->>'${key}')::boolean = ?`);
-          values.push(argFilter.value);
         }
+      } else if (argFilter.type === "string" && argFilter.value) {
+        conditions.push(`decoded_args->>'${key}' ILIKE ?`);
+        values.push(`%${argFilter.value}%`);
+      } else if (
+        argFilter.type === "boolean" &&
+        argFilter.value !== undefined
+      ) {
+        conditions.push(`(decoded_args->>'${key}')::boolean = ?`);
+        values.push(argFilter.value);
       }
-    }
-
-    if (filter.type) {
-      conditions.push(`${dapp_activity_table}.type = ?`);
-      values.push(filter.type);
     }
   }
 
-  const whereClause =
-    conditions.length > 0 ? `AND ${conditions.join(" AND ")}` : "";
+  if (filter.type) {
+    conditions.push(`${dapp_activity_table}.type = ?`);
+    values.push(filter.type);
+  }
 
-  const query = `${baseQuery} ${whereClause}`.trim();
+  const whereClause =
+    conditions.length > 0 ? `${conditions.join(" AND ")}` : "";
+
+  let metricSelection;
+  if (metric === "wallets") {
+    metricSelection = `${dapp_activity_table}.caller AS caller`;
+  } else if (metric === "interactions") {
+    metricSelection = `COUNT(${dapp_activity_table}.*) AS interactions`;
+  } else if (metric === "transferredTokens") {
+    metricSelection = `SUM(${dapp_activity_table}.value) AS "transferredTokens"`;
+  }
+
+  const metricColumn =
+    metric === "wallets" ? `, ${dapp_activity_table}.caller` : " ";
+
+  const query = `
+    WITH date_series AS (
+      SELECT generate_series(
+        CURRENT_DATE - INTERVAL '89 days',
+        CURRENT_DATE,
+        '1 day'::interval
+      ) AS day
+    )
+    SELECT 
+      TO_CHAR(date_series.day, 'YYYY-MM-DD') AS dimension,
+      ${metricSelection}
+      ${
+        breakdown
+          ? `, COALESCE(${dapp_activity_table}.contract, 'Unknown') AS contract`
+          : ""
+      }
+    FROM 
+      date_series
+    LEFT JOIN 
+      ${dapp_activity_table} 
+      ON DATE(${dapp_activity_table}.timestamp) = date_series.day
+      ${whereClause ? `AND ${whereClause}` : ""}
+    GROUP BY
+      date_series.day ${metricColumn}
+      ${breakdown ? `, ${dapp_activity_table}.contract` : ""}
+    ORDER BY
+      date_series.day
+  `;
 
   return { query, values };
+};
+const getDataForFilter = async (
+  dAppId: string,
+  filter: Filter,
+  breakdown: boolean,
+  metric: "wallets" | "interactions" | "transferredTokens"
+): Promise<Map<string, Map<string, Set<string> | number>>> => {
+  const { query, values } = buildQueryForFilter(
+    dAppId,
+    filter,
+    breakdown,
+    metric
+  );
+
+  try {
+    console.log(`Final Query for Filter: ${filter.name}`);
+    console.log(`Query: ${query}`);
+    console.log(`Values: ${values}`);
+
+    const result = await externalKnexInstances[
+      process.env.DAPP_ANALYTICS_DB_NAME
+    ].raw(query, values);
+
+    const dataMap = new Map<string, Map<string, Set<string> | number>>();
+    result.rows.forEach((row: any) => {
+      const dimension = row.dimension;
+      const contract = breakdown ? row.contract : "NoBreakdown";
+
+      if (!dataMap.has(dimension)) {
+        dataMap.set(dimension, new Map<string, Set<string> | number>());
+      }
+
+      if (metric === "wallets") {
+        const caller = row.caller;
+        if (caller !== null) {
+          if (!dataMap.get(dimension)!.has(contract)) {
+            dataMap.get(dimension)!.set(contract, new Set<string>());
+          }
+          (dataMap.get(dimension)!.get(contract) as Set<string>).add(caller);
+        }
+      } else if (metric === "interactions") {
+        const interactions = row.interactions;
+        if (!dataMap.get(dimension)!.has(contract)) {
+          dataMap.get(dimension)!.set(contract, 0);
+        }
+        dataMap.get(dimension)!.set(contract, interactions);
+      } else if (metric === "transferredTokens") {
+        const transferredTokens = row.transferredTokens;
+        if (!dataMap.get(dimension)!.has(contract)) {
+          dataMap.get(dimension)!.set(contract, 0);
+        }
+        dataMap.get(dimension)!.set(contract, transferredTokens);
+      }
+    });
+
+    return dataMap;
+  } catch (error) {
+    throw new Error(`Error executing query for filter: ${error.message}`);
+  }
+};
+const intersectTransferredTokensByDay = (
+  maps: Map<string, Map<string, number>>[],
+  breakdown: boolean
+): object[] => {
+  const result: object[] = [];
+  const dateSeries = generateDateSeries();
+  const allContracts = new Set<string>();
+
+  // Collect all contracts
+  maps.forEach((map) => {
+    map.forEach((contracts) => {
+      contracts.forEach((_, contract) => {
+        if (contract !== "Unknown") {
+          allContracts.add(contract);
+        }
+      });
+    });
+  });
+
+  // Iterate over each date and each contract
+  dateSeries.forEach((date) => {
+    if (breakdown) {
+      allContracts.forEach((contract) => {
+        let totalTransferredTokens = 0;
+        let allFiltersHaveTransferredTokens = true;
+
+        for (let i = 0; i < maps.length; i++) {
+          const currentMap = maps[i];
+          if (currentMap.has(date) && currentMap.get(date)!.has(contract)) {
+            totalTransferredTokens += currentMap.get(date)!.get(contract)!;
+          } else {
+            allFiltersHaveTransferredTokens = false;
+            break;
+          }
+        }
+
+        result.push({
+          dimension: date,
+          differential: contract,
+          transferredTokens: allFiltersHaveTransferredTokens
+            ? totalTransferredTokens
+            : 0,
+        });
+      });
+    } else {
+      let totalTransferredTokens = 0;
+      let allFiltersHaveTransferredTokens = true;
+
+      for (let i = 0; i < maps.length; i++) {
+        const currentMap = maps[i];
+        if (currentMap.has(date)) {
+          let dayTransferredTokens = 0;
+          currentMap.get(date)!.forEach((transferredTokens) => {
+            dayTransferredTokens += transferredTokens;
+          });
+
+          if (dayTransferredTokens > 0) {
+            totalTransferredTokens += dayTransferredTokens;
+          } else {
+            allFiltersHaveTransferredTokens = false;
+            break;
+          }
+        } else {
+          allFiltersHaveTransferredTokens = false;
+          break;
+        }
+      }
+
+      result.push({
+        dimension: date,
+        transferredTokens: allFiltersHaveTransferredTokens
+          ? totalTransferredTokens
+          : 0,
+      });
+    }
+  });
+
+  return result;
+};
+const intersectInteractionsByDay = (
+  maps: Map<string, Map<string, number>>[],
+  breakdown: boolean
+): object[] => {
+  const result: object[] = [];
+  const dateSeries = generateDateSeries();
+  const allContracts = new Set<string>();
+
+  // Collect all contracts
+  maps.forEach((map) => {
+    map.forEach((contracts) => {
+      contracts.forEach((_, contract) => {
+        if (contract !== "Unknown") {
+          allContracts.add(contract);
+        }
+      });
+    });
+  });
+
+  // Iterate over each date and each contract
+  dateSeries.forEach((date) => {
+    if (breakdown) {
+      allContracts.forEach((contract) => {
+        let minCommonInteractions = Number.MAX_SAFE_INTEGER;
+        let allFiltersHaveInteractions = true;
+
+        for (let i = 0; i < maps.length; i++) {
+          const currentMap = maps[i];
+          if (currentMap.has(date) && currentMap.get(date)!.has(contract)) {
+            minCommonInteractions = Math.min(
+              minCommonInteractions,
+              currentMap.get(date)!.get(contract)!
+            );
+          } else {
+            allFiltersHaveInteractions = false;
+            break;
+          }
+        }
+
+        result.push({
+          dimension: date,
+          differential: contract,
+          interactions: allFiltersHaveInteractions ? minCommonInteractions : 0,
+        });
+      });
+    } else {
+      let minCommonInteractions = Number.MAX_SAFE_INTEGER;
+      let allFiltersHaveInteractions = true;
+
+      for (let i = 0; i < maps.length; i++) {
+        const currentMap = maps[i];
+        if (currentMap.has(date)) {
+          let dayInteractions = 0;
+          currentMap.get(date)!.forEach((interactions) => {
+            dayInteractions += interactions;
+          });
+
+          if (dayInteractions > 0) {
+            minCommonInteractions = Math.min(
+              minCommonInteractions,
+              dayInteractions
+            );
+          } else {
+            allFiltersHaveInteractions = false;
+            break;
+          }
+        } else {
+          allFiltersHaveInteractions = false;
+          break;
+        }
+      }
+
+      result.push({
+        dimension: date,
+        interactions: allFiltersHaveInteractions ? minCommonInteractions : 0,
+      });
+    }
+  });
+
+  return result;
+};
+const intersectWalletsByDay = (
+  maps: Map<string, Map<string, Set<string>>>[],
+  breakdown: boolean
+): object[] => {
+  const result: object[] = [];
+  const dateSeries = generateDateSeries();
+  const allContracts = new Set<string>();
+
+  // Collect all contracts
+  maps.forEach((map) => {
+    map.forEach((contracts) => {
+      contracts.forEach((_, contract) => {
+        allContracts.add(contract);
+      });
+    });
+  });
+
+  // Iterate over each date and each contract
+  dateSeries.forEach((date) => {
+    if (breakdown) {
+      allContracts.forEach((contract) => {
+        let intersection = new Set<string>();
+
+        for (let i = 0; i < maps.length; i++) {
+          const currentMap = maps[i];
+          if (currentMap.has(date) && currentMap.get(date)!.has(contract)) {
+            const currentSet = currentMap.get(date)!.get(contract)!;
+            if (i === 0) {
+              intersection = new Set(currentSet as Set<string>);
+            } else {
+              intersection = new Set(
+                [...intersection].filter((wallet) =>
+                  (currentSet as Set<string>).has(wallet)
+                )
+              );
+            }
+          } else {
+            intersection = new Set();
+            break;
+          }
+        }
+
+        result.push({
+          dimension: date,
+          differential: contract,
+          wallets: intersection.size,
+        });
+      });
+    } else {
+      let intersection = new Set<string>();
+
+      for (let i = 0; i < maps.length; i++) {
+        const currentMap = maps[i];
+        if (currentMap.has(date)) {
+          currentMap.get(date)!.forEach((wallets) => {
+            if (i === 0) {
+              intersection = new Set(wallets as Set<string>);
+            } else {
+              intersection = new Set(
+                [...intersection].filter((wallet) =>
+                  (wallets as Set<string>).has(wallet)
+                )
+              );
+            }
+          });
+        } else {
+          intersection = new Set();
+          break;
+        }
+      }
+
+      result.push({
+        dimension: date,
+        wallets: intersection.size,
+      });
+    }
+  });
+
+  return result;
+};
+export const getUniqueWallets = async (
+  dAppId: string,
+  body: GetMetricsRequest
+): Promise<object[]> => {
+  const filters =
+    body.filters.length > 0
+      ? body.filters
+      : [{ name: null, type: null, args: {} }];
+  const breakdown = body.breakdown || false;
+
+  const filterResults = await Promise.all(
+    filters.map((filter) =>
+      getDataForFilter(dAppId, filter, breakdown, "wallets")
+    )
+  );
+
+  return intersectWalletsByDay(
+    filterResults as Map<string, Map<string, Set<string>>>[],
+    breakdown
+  );
+};
+
+export const getInteractions = async (
+  dAppId: string,
+  body: GetMetricsRequest
+): Promise<object[]> => {
+  const filters =
+    body.filters.length > 0
+      ? body.filters
+      : [{ name: null, type: null, args: {} }];
+  const breakdown = body.breakdown || false;
+
+  const filterResults = await Promise.all(
+    filters.map((filter) =>
+      getDataForFilter(dAppId, filter, breakdown, "interactions")
+    )
+  );
+
+  return intersectInteractionsByDay(
+    filterResults as Map<string, Map<string, number>>[],
+    breakdown
+  );
+};
+
+export const getTransferredTokens = async (
+  dAppId: string,
+  body: GetMetricsRequest
+): Promise<object[]> => {
+  const filters =
+    body.filters.length > 0
+      ? body.filters
+      : [{ name: null, type: null, args: {} }];
+  const breakdown = body.breakdown || false;
+
+  const filterResults = await Promise.all(
+    filters.map((filter) =>
+      getDataForFilter(dAppId, filter, breakdown, "transferredTokens")
+    )
+  );
+
+  return intersectTransferredTokensByDay(
+    filterResults as Map<string, Map<string, number>>[],
+    breakdown
+  );
 };
 
 export const getDappDataMetrics = async (
@@ -201,118 +607,14 @@ export const getDappDataMetrics = async (
   metric: string,
   body: GetMetricsRequest
 ): Promise<object[]> => {
-  const defaultNoneFilter: Filter = {
-    name: null,
-    type: null,
-    args: {},
-  };
-
-  const dapp_activity_table = `"dapp_analytics"."dapp_analytics_${dAppId}"`;
-  const commonQueryPart = `
-    WITH RECURSIVE date_series AS (
-        SELECT CURRENT_DATE - INTERVAL '89 days' AS day
-        UNION ALL
-        SELECT day + INTERVAL '1 day'
-        FROM date_series
-        WHERE day + INTERVAL '1 day' <= CURRENT_DATE
-    )
-    SELECT 
-        TO_CHAR(date_series.day, 'YYYY-MM-DD') AS dimension,
-        COALESCE(<<METRIC>>, 0) AS ${metric},
-        ${
-          body.breakdown
-            ? `COALESCE(${dapp_activity_table}.contract, 'Unknown') AS contract,`
-            : ""
-        }
-        COALESCE(
-            CASE 
-                WHEN COUNT(DISTINCT ${dapp_activity_table}.caller) > 0 
-                  THEN JSON_AGG(DISTINCT ${dapp_activity_table}.caller)::jsonb
-                ELSE '[]'::jsonb
-            END,
-            '[]'::jsonb
-        ) AS addresses
-    FROM 
-        date_series
-    LEFT JOIN 
-        ${dapp_activity_table} 
-            ON DATE(${dapp_activity_table}.timestamp) = date_series.day
-  `;
-
-  let metricQueryPart: string;
   switch (metric) {
     case "wallets":
-      metricQueryPart = `
-        COUNT(DISTINCT ${dapp_activity_table}.caller)
-      `;
-      break;
-    case "transferredTokens":
-      metricQueryPart = `
-        SUM(${dapp_activity_table}.value)
-      `;
-      break;
+      return getUniqueWallets(dAppId, body);
     case "interactions":
-      metricQueryPart = `
-        COUNT(${dapp_activity_table}.timestamp)
-      `;
-      break;
+      return getInteractions(dAppId, body);
+    case "transferredTokens":
+      return getTransferredTokens(dAppId, body);
     default:
-      throw new Error("Invalid metric");
-  }
-
-  const baseQuery = commonQueryPart.replace(/<<METRIC>>/g, metricQueryPart);
-
-  // Combine all filters into a single query
-  const filters = body.filters || [defaultNoneFilter];
-  const { query, values } = buildQuery(dAppId, baseQuery, filters);
-
-  const finalQuery = `${query} ${
-    body.breakdown
-      ? `GROUP BY date_series.day, ${dapp_activity_table}.contract`
-      : `GROUP BY date_series.day, ${dapp_activity_table}.type`
-  } ORDER BY date_series.day`;
-
-  try {
-    console.log(`Final Query: ${finalQuery}`);
-    console.log(`Values: ${values}`);
-
-    const result = await externalKnexInstances[
-      process.env.DAPP_ANALYTICS_DB_NAME
-    ].raw(finalQuery, values);
-
-    const allDifferentials = new Set(
-      result.rows
-        .map((row) => row.contract)
-        .filter((contract) => contract !== "Unknown")
-    );
-
-    // Transform and fill missing entries
-    const transformedResult = [];
-    const dateMap = new Map();
-
-    for (const row of result.rows) {
-      const dimension = row.dimension;
-      const contract = row.contract || "Unknown";
-      const wallets = row.wallets;
-
-      if (!dateMap.has(dimension)) {
-        dateMap.set(dimension, new Map());
-      }
-      dateMap.get(dimension).set(contract, wallets);
-    }
-
-    for (const [dimension, contractsMap] of dateMap.entries()) {
-      for (const differential of allDifferentials) {
-        transformedResult.push({
-          dimension,
-          differential,
-          wallets: contractsMap.get(differential) || 0,
-        });
-      }
-    }
-
-    return transformedResult;
-  } catch (error) {
-    throw new Error(`Error executing query: ${error.message}`);
+      throw new Error(`Unknown metric: ${metric}`);
   }
 };
