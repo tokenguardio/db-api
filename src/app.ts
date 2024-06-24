@@ -10,6 +10,7 @@ import growthIndexRoutes from "./routes/growth-index";
 import queryRoutes from "./routes/query";
 import databaseInfoRoutes from "./routes/databaseInfo";
 import chartDataRouters from "./routes/chartData";
+import dappAnalyticsRoutes from "./routes/dapp-analytics";
 import logger from "./utils/logger";
 import { ApiError } from "./middleware/joiValidate";
 
@@ -32,7 +33,7 @@ const swaggerOptions = {
 
 // Express configuration
 app.set("port", process.env.PORT || 3000);
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(helmet());
 
@@ -50,6 +51,7 @@ app.use(growthIndexRoutes);
 app.use(queryRoutes);
 app.use(databaseInfoRoutes);
 app.use(chartDataRouters);
+app.use(dappAnalyticsRoutes);
 
 app.use((err: ApiError, req: Request, res: Response, next: NextFunction) => {
   const statusCode = err.statusCode || 500;
