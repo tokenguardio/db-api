@@ -76,6 +76,31 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.name }}
                   key: queries-postgres-dbname
+            - name: DAPP_ANALYTICS_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: dapp-analytics-postgres-username
+            - name: DAPP_ANALYTICS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: dapp-analytics-postgres-password   
+            - name: DAPP_ANALYTICS_DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: dapp-analytics-postgres-host
+            - name: DAPP_ANALYTICS_DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: dapp-analytics-postgres-port
+            - name: DAPP_ANALYTICS_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: dapp-analytics-postgres-dbname
           resources:
 {{ toYaml .Values.dbapi.deployment.resources | indent 12 }}              
           volumeMounts:                           
