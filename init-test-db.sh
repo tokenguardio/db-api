@@ -1,11 +1,6 @@
 #!/bin/bash
 set -e
 
-# Source the .env.test file
-if [ -f .env.test ]; then
-    source .env.test
-fi
-
 # Function to create a database if it doesn't exist
 create_db() {
     local database=$1
@@ -16,7 +11,7 @@ EOSQL
 }
 
 # Convert the DB names string to an array
-IFS=',' read -ra DB_ARRAY <<< "$DATA_DB_NAMES"
+IFS=',' read -ra DB_ARRAY <<< "$EXTRA_DB_NAMES"
 
 # Loop through and create each database
 for db in "${DB_ARRAY[@]}"; do
