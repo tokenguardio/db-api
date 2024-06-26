@@ -10,5 +10,5 @@ COPY ./ ./
 RUN npm run build
 
 EXPOSE 8082
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["sh", "entrypoint.sh"]
 CMD ["npm", "run", "start:dev"]
