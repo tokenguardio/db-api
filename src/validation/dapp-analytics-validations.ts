@@ -57,9 +57,7 @@ export const saveDappValidation = {
 
 export const getDappByIdValidation = {
   params: Joi.object({
-    id: Joi.string()
-      .guid({ version: ["uuidv4"] })
-      .required(),
+    id: Joi.string().uuid().required(),
   }),
 };
 
@@ -78,9 +76,7 @@ export const updateDappValidation = {
 
 export const dappDataMetricsValidation = {
   params: Joi.object({
-    id: Joi.string()
-      .guid({ version: ["uuidv4"] })
-      .required(),
+    id: Joi.string().uuid().required(),
     metric: Joi.string().valid("wallets", "transferredTokens", "interactions"),
   }),
   body: Joi.object({
@@ -113,8 +109,6 @@ export const dappDataMetricsValidation = {
 
 export const getDappIndexingStatusValidation = {
   params: Joi.object({
-    id: Joi.string()
-      .guid({ version: ["uuidv4"] })
-      .required(),
+    id: Joi.string().uuid().required(),
   }),
 };
