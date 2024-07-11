@@ -180,8 +180,13 @@ const buildQueryForFilter = (
         argFilter.type === "boolean" &&
         argFilter.value !== undefined
       ) {
+        const booleanValue =
+          argFilter.value === true ||
+          argFilter.value === "true" ||
+          argFilter.value === "t" ||
+          argFilter.value === "1";
         conditions.push(`(decoded_args->>'${key}')::boolean = ?`);
-        values.push(argFilter.value);
+        values.push(booleanValue);
       }
     }
   }

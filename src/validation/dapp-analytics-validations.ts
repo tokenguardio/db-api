@@ -94,12 +94,18 @@ export const dappDataMetricsValidation = {
                 operator: Joi.string()
                   .valid(">", "<", ">=", "<=", "=", "!=")
                   .required(),
-                value: Joi.alternatives()
-                  .try(Joi.number(), Joi.string(), Joi.boolean())
-                  .required(),
+                value: Joi.alternatives().try(
+                  Joi.boolean(),
+                  Joi.number(),
+                  Joi.string().allow("")
+                ),
               })
             ),
-            value: Joi.alternatives().try(Joi.string(), Joi.boolean()),
+            value: Joi.alternatives().try(
+              Joi.boolean(),
+              Joi.number(),
+              Joi.string().allow("")
+            ),
           })
         ),
       })
