@@ -1,4 +1,5 @@
 import { format } from "util";
+import * as _ from "lodash";
 import Dapps, {
   DappsInitializer,
   DappsMutator,
@@ -121,7 +122,7 @@ interface ArgCondition {
 }
 
 interface ArgFilter {
-  type: "integer" | "string" | "boolean";
+  type: "number" | "string" | "boolean" | "integer";
   conditions?: ArgCondition[];
   value?: string | boolean;
 }
@@ -161,27 +162,37 @@ const buildQueryForFilter = (
     conditions.push(`${dapp_activity_table}.name ILIKE ?`);
     values.push(`%${filter.name.replace("::", "_")}%`);
   }
-
+  console.log(`Filter: ${JSON.stringify(filter)}`);
   if (filter.args) {
     for (const [key, argFilter] of Object.entries(filter.args)) {
-      if (argFilter.type === "integer" && argFilter.conditions) {
+      const actualKey = _.camelCase(key);
+      console.log(`key: ${key}, actualKey: ${actualKey}`);
+      if (
+        (argFilter.type === "integer" || argFilter.type === "number") &&
+        argFilter.conditions
+      ) {
         for (const condition of argFilter.conditions) {
           if (condition.operator && condition.value !== undefined) {
             conditions.push(
-              `(decoded_args->>'${key}')::integer ${condition.operator} ?`
+              `(decoded_args->>'${actualKey}')::double precision ${condition.operator} ?`
             );
             values.push(condition.value);
           }
         }
       } else if (argFilter.type === "string" && argFilter.value) {
-        conditions.push(`decoded_args->>'${key}' ILIKE ?`);
+        conditions.push(`decoded_args->>'${actualKey}' ILIKE ?`);
         values.push(`%${argFilter.value}%`);
       } else if (
         argFilter.type === "boolean" &&
         argFilter.value !== undefined
       ) {
-        conditions.push(`(decoded_args->>'${key}')::boolean = ?`);
-        values.push(argFilter.value);
+        const booleanValue =
+          argFilter.value === true ||
+          argFilter.value === "true" ||
+          argFilter.value === "t" ||
+          argFilter.value === "1";
+        conditions.push(`(decoded_args->>'${actualKey}')::boolean = ?`);
+        values.push(booleanValue);
       }
     }
   }
