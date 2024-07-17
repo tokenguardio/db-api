@@ -20,7 +20,7 @@ export default interface Dapps {
 
   added_by: string | null;
 
-  abis: unknown;
+  abis: object[];
 
   created_at: Date;
 

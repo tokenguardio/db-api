@@ -248,6 +248,7 @@ const buildQueryForFilter = (
 
   return { query, values };
 };
+
 const getDataForFilter = async (
   dAppId: string,
   filter: Filter,
@@ -270,10 +271,23 @@ const getDataForFilter = async (
       process.env.DAPP_ANALYTICS_DB_NAME
     ].raw(query, values);
 
+    const dApp = await getDapp(dAppId);
+    if (!dApp) {
+      throw new Error(`dApp with ID ${dAppId} not found`);
+    }
+
+    // Create a map to translate contract addresses to their names
+    const addressToNameMap = new Map<string, string>();
+    dApp.abis.forEach((abiEntry: any) => {
+      addressToNameMap.set(abiEntry.address, abiEntry.name);
+    });
+
     const dataMap = new Map<string, Map<string, Set<string> | number>>();
     result.rows.forEach((row: any) => {
       const dimension = row.dimension;
-      const contract = breakdown ? row.contract : "NoBreakdown";
+      const contractAddress = breakdown ? row.contract : "NoBreakdown";
+      const contractName =
+        addressToNameMap.get(contractAddress) || contractAddress;
 
       if (!dataMap.has(dimension)) {
         dataMap.set(dimension, new Map<string, Set<string> | number>());
@@ -282,23 +296,25 @@ const getDataForFilter = async (
       if (metric === "wallets") {
         const caller = row.caller;
         if (caller !== null) {
-          if (!dataMap.get(dimension)!.has(contract)) {
-            dataMap.get(dimension)!.set(contract, new Set<string>());
+          if (!dataMap.get(dimension)!.has(contractName)) {
+            dataMap.get(dimension)!.set(contractName, new Set<string>());
           }
-          (dataMap.get(dimension)!.get(contract) as Set<string>).add(caller);
+          (dataMap.get(dimension)!.get(contractName) as Set<string>).add(
+            caller
+          );
         }
       } else if (metric === "interactions") {
         const interactions = row.interactions;
-        if (!dataMap.get(dimension)!.has(contract)) {
-          dataMap.get(dimension)!.set(contract, 0);
+        if (!dataMap.get(dimension)!.has(contractName)) {
+          dataMap.get(dimension)!.set(contractName, 0);
         }
-        dataMap.get(dimension)!.set(contract, interactions);
+        dataMap.get(dimension)!.set(contractName, interactions);
       } else if (metric === "transferredTokens") {
         const transferredTokens = row.transferredTokens;
-        if (!dataMap.get(dimension)!.has(contract)) {
-          dataMap.get(dimension)!.set(contract, 0);
+        if (!dataMap.get(dimension)!.has(contractName)) {
+          dataMap.get(dimension)!.set(contractName, 0);
         }
-        dataMap.get(dimension)!.set(contract, transferredTokens);
+        dataMap.get(dimension)!.set(contractName, transferredTokens);
       }
     });
 
@@ -307,6 +323,7 @@ const getDataForFilter = async (
     throw new Error(`Error executing query for filter: ${error.message}`);
   }
 };
+
 const intersectTransferredTokensByDay = (
   maps: Map<string, Map<string, number>>[],
   breakdown: boolean
