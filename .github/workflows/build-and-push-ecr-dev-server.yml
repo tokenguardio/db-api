@@ -21,9 +21,9 @@ jobs:
       - name: Build Docker image
         run: docker build -t db-api .
       - name: Run tests with temp db
-        run: docker-compose -f docker-compose-test.yaml run db-api npm test
+        run: docker compose -f docker-compose-test.yaml run db-api npm test
       - name: Remove docker and volumes
-        run: docker-compose -f docker-compose-test.yaml down -v
+        run: docker compose -f docker-compose-test.yaml down -v
   build-push:
     name: Build image and push to ECR(tokenguard-dev)
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'

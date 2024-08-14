@@ -1,6 +1,6 @@
 # values for db-api dev environment.
-ecrRegistry: 117632573168.dkr.ecr.eu-west-1.amazonaws.com
-eksEnvironment: tokenguard-prod
+ecrRegistry: 123622898391.dkr.ecr.eu-west-1.amazonaws.com
+eksEnvironment: tokenguard-dev
 
 imagePullSecrets: ~
 
@@ -9,14 +9,14 @@ ingressExternal:
 
 ingressInternal:
   enabled: true
-  name: db-api-ingress-internal
+  name: db-api-new-ingress-internal
   rules:
-    - host: db-api.prod.tokenguard.io       
+    - host: db-api-new.dev.tokenguard.io       
       http:
         paths:        
         - backend:
             service:
-              name: db-api
+              name: db-api-new
               port:
                 number: 8082
           path: /
@@ -24,18 +24,25 @@ ingressInternal:
 
 dbapi:
   deployment:
+    name: db-api-new
     image:
-      repository: "tokenguard-prod-db-api"
+      repository: "tokenguard-dev-db-api"
       pullPolicy: Always
-      tag: "3193831990458e3d550506dfeba77318bc57df64"
+      tag: "3180ea8b2301e29469454514aa1dd60c5e7c99f2"
     replicaCount: 1
     env: 
-      NODE_ENV: "production"
+      NODE_ENV: "development"
     resources: 
       requests:
         memory: "256Mi" 
         cpu: "200m"
       limits:
         memory: "2Gi"
-        cpu: "2000m"   
+        cpu: "2000m"
+  configmap:
+    name: db-api-new
+  service:
+    name: db-api-new
 
+secrets:
+  name: db-api-new-secrets
