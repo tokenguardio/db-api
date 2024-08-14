@@ -1,7 +1,9 @@
 import Joi from "joi";
-import { Abi as SubsquidAbi } from "@subsquid/ink-abi";
-import { decodeAddress } from "@polkadot/keyring";
+import { Abi as SubsquidInkAbi } from "@subsquid/ink-abi";
+import { Interface as SubsquidEvmAbi, isAddress as isEvmAddress } from "ethers";
+import { decodeAddress as decodeSubstrateAddress } from "@polkadot/keyring";
 
+// Validator for Substrate addresses
 const substrateAddressValidator = Joi.extend((joi) => ({
   type: "substrateAddress",
   base: joi.string(),
@@ -10,7 +12,7 @@ const substrateAddressValidator = Joi.extend((joi) => ({
   },
   validate(value, helpers) {
     try {
-      decodeAddress(value);
+      decodeSubstrateAddress(value);
       return { value };
     } catch (error) {
       return { errors: helpers.error("substrateAddress.base") };
@@ -18,28 +20,78 @@ const substrateAddressValidator = Joi.extend((joi) => ({
   },
 }));
 
-const subsquidAbiValidator = Joi.extend((joi) => ({
-  type: "subsquidAbi",
-  base: joi.object(),
+// Validator for EVM addresses
+const evmAddressValidator = Joi.extend((joi) => ({
+  type: "evmAddress",
+  base: joi.string(),
   messages: {
-    "subsquidAbi.validate":
-      "{{#label}} does not conform to Subsquid ABI format",
+    "evmAddress.base": "{{#label}} must be a valid EVM address",
   },
   validate(value, helpers) {
     try {
-      new SubsquidAbi(value);
-      return { value };
+      if (isEvmAddress(value)) {
+        return { value };
+      } else {
+        return { errors: helpers.error("evmAddress.base") };
+      }
     } catch (error) {
-      return { errors: helpers.error("subsquidAbi.validate") };
+      return { errors: helpers.error("evmAddress.base") };
     }
   },
 }));
 
+// Validator for Subsquid Ink ABI (object)
+const subsquidInkAbiValidator = Joi.extend((joi) => ({
+  type: "subsquidInkAbi",
+  base: joi.object(),
+  messages: {
+    "subsquidInkAbi.validate":
+      "{{#label}} does not conform to Subsquid Ink ABI format",
+  },
+  validate(value, helpers) {
+    try {
+      new SubsquidInkAbi(value);
+      return { value };
+    } catch (error) {
+      return { errors: helpers.error("subsquidInkAbi.validate") };
+    }
+  },
+}));
+
+// Validator for EVM ABI (array)
+const subsquidEvmAbiValidator = Joi.extend((joi) => ({
+  type: "subsquidEvmAbi",
+  base: joi.array(),
+  messages: {
+    "subsquidEvmAbi.validate":
+      "{{#label}} does not conform to Subsquid EVM ABI format",
+  },
+  validate(value, helpers) {
+    try {
+      new SubsquidEvmAbi(value); // This line checks the validity of the ABI
+      return { value };
+    } catch (error) {
+      return { errors: helpers.error("subsquidEvmAbi.validate") };
+    }
+  },
+}));
+
+// Combined ABI Validator
 const abiSchema = Joi.array().items(
   Joi.object({
     name: Joi.string(),
-    address: substrateAddressValidator.substrateAddress().required(),
-    abi: subsquidAbiValidator.subsquidAbi().required(),
+    address: Joi.alternatives()
+      .try(
+        substrateAddressValidator.substrateAddress(),
+        evmAddressValidator.evmAddress()
+      )
+      .required(),
+    abi: Joi.alternatives()
+      .try(
+        subsquidInkAbiValidator.subsquidInkAbi(),
+        subsquidEvmAbiValidator.subsquidEvmAbi()
+      )
+      .required(),
   })
 );
 
