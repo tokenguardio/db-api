@@ -27,7 +27,7 @@ dbapi:
     image:
       repository: "tokenguard-dev-db-api"
       pullPolicy: Always
-      tag: "3180ea8b2301e29469454514aa1dd60c5e7c99f2"
+      tag: "91ab20dfbb4466b9b59ba4d8086ae5957ad296ab"
     replicaCount: 1
     env: 
       NODE_ENV: "development"

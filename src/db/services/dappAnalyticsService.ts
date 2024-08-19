@@ -159,7 +159,7 @@ const buildQueryForFilter = (
   const values: any[] = [];
 
   if (filter.name) {
-    conditions.push(`${dapp_activity_table}.name ILIKE ?`);
+    conditions.push("src.name ILIKE ? ");
     values.push(`%${filter.name.replace("::", "_")}%`);
   }
   console.log(`Filter: ${JSON.stringify(filter)}`);
@@ -198,7 +198,7 @@ const buildQueryForFilter = (
   }
 
   if (filter.type) {
-    conditions.push(`${dapp_activity_table}.type = ?`);
+    conditions.push("src.type = ?");
     values.push(filter.type);
   }
 
@@ -207,15 +207,15 @@ const buildQueryForFilter = (
 
   let metricSelection;
   if (metric === "wallets") {
-    metricSelection = `${dapp_activity_table}.caller AS caller`;
+    metricSelection = "src.caller AS caller";
   } else if (metric === "interactions") {
-    metricSelection = `COUNT(${dapp_activity_table}.*) AS interactions`;
+    metricSelection = "COUNT(src.*) AS interactions";
   } else if (metric === "transferredTokens") {
-    metricSelection = `SUM(${dapp_activity_table}.value) AS "transferredTokens"`;
+    // eslint-disable-next-line quotes
+    metricSelection = 'SUM(src.value) AS "transferredTokens"';
   }
 
-  const metricColumn =
-    metric === "wallets" ? `, ${dapp_activity_table}.caller` : " ";
+  const metricColumn = metric === "wallets" ? ", src.caller" : " ";
 
   const query = `
     WITH date_series AS (
@@ -228,20 +228,17 @@ const buildQueryForFilter = (
     SELECT 
       TO_CHAR(date_series.day, 'YYYY-MM-DD') AS dimension,
       ${metricSelection}
-      ${
-        breakdown
-          ? `, COALESCE(${dapp_activity_table}.contract, 'Unknown') AS contract`
-          : ""
-      }
+      ${breakdown ? ", COALESCE(src.contract, 'Unknown') AS contract" : ""}
     FROM 
       date_series
     LEFT JOIN 
-      ${dapp_activity_table} 
-      ON DATE(${dapp_activity_table}.timestamp) = date_series.day
-      ${whereClause ? `AND ${whereClause}` : ""}
+      (SELECT * FROM ${dapp_activity_table} 
+      WHERE timestamp >= CURRENT_DATE - INTERVAL '89 days') src      
+      ON DATE(src.timestamp) = date_series.day 
+      ${whereClause ? `AND ${whereClause}` : " "}
     GROUP BY
       date_series.day ${metricColumn}
-      ${breakdown ? `, ${dapp_activity_table}.contract` : ""}
+      ${breakdown ? ", src.contract" : " "}
     ORDER BY
       date_series.day
   `;
