@@ -140,7 +140,7 @@ interface Filter {
 const generateDateSeries = (): string[] => {
   const dates = [];
   const currentDate = new Date();
-  for (let i = 0; i < 90; i++) {
+  for (let i = 0; i < 365; i++) {
     const date = new Date(currentDate);
     date.setDate(currentDate.getDate() - i);
     dates.push(date.toISOString().split("T")[0]);
@@ -220,7 +220,7 @@ const buildQueryForFilter = (
   const query = `
     WITH date_series AS (
       SELECT generate_series(
-        CURRENT_DATE - INTERVAL '89 days',
+        CURRENT_DATE - INTERVAL '364 days',
         CURRENT_DATE,
         '1 day'::interval
       ) AS day
