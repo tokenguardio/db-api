@@ -233,7 +233,7 @@ const buildQueryForFilter = (
       date_series
     LEFT JOIN 
       (SELECT * FROM ${dapp_activity_table} 
-      WHERE timestamp >= CURRENT_DATE - INTERVAL '89 days') src      
+      WHERE timestamp >= CURRENT_DATE - INTERVAL '364 days') src      
       ON DATE(src.timestamp) = date_series.day 
       ${whereClause ? `AND ${whereClause}` : " "}
     GROUP BY
