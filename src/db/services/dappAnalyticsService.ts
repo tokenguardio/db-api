@@ -24,6 +24,8 @@ export const saveDapp = async (
         abis: JSON.stringify(dappData.abis),
         created_at: new Date(),
         updated_at: new Date(),
+        airdrop_contract: dappData.airdrop_contract,
+        airdrop_currency_contract: dappData.airdrop_currency_contract,
       })
       .into("dapps")
       .returning("id");
@@ -59,7 +61,9 @@ export const getAllDapps = async (): Promise<Dapps[] | undefined> => {
         "website",
         "added_by",
         "created_at",
-        "updated_at"
+        "updated_at",
+        "airdrop_contract",
+        "airdrop_currency_contract"
       )
       .from("dapps");
     return dapps;
@@ -87,7 +91,7 @@ export const updateDapp = async (
         website: dappData.website,
         from_block: dappData.from_block,
         added_by: dappData.added_by,
-        abis: dappData.abis ? JSON.stringify(dappData.abis) : undefined,
+        abis: dappData.abis ? dappData.abis : undefined,
         updated_at: new Date(),
       });
 
