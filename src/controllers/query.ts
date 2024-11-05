@@ -178,7 +178,7 @@ export const executeQuery = async (
       if (!providedIdentifier) {
         return res
           .status(400)
-          .send({ message: `Identifier '${savedIdentifier.name}' is missing` });
+          .send({ message: `Identifier '${savedIdentifier}' is missing` });
       }
     }
 
