@@ -134,7 +134,7 @@ interface ArgFilter {
 interface GetMetricsRequest {
   breakdown?: boolean;
   filters?: Filter[];
-  segmentId?: number;
+  segmentId?: string;
 }
 interface Filter {
   name?: string;
@@ -158,7 +158,7 @@ const buildQueryForFilter = (
   filter: Filter,
   breakdown: boolean,
   metric: "wallets" | "interactions" | "transferredTokens",
-  segmentId?: number
+  segmentId?: string
 ): { query: string; values: any[] } => {
   const dapp_activity_table = `"dapp_analytics"."dapp_analytics_${dAppId}"`;
   const conditions: string[] = [];
@@ -264,7 +264,7 @@ const getDataForFilter = async (
   filter: Filter,
   breakdown: boolean,
   metric: "wallets" | "interactions" | "transferredTokens",
-  segmentId?: number
+  segmentId?: string
 ): Promise<Map<string, Map<string, Set<string> | number>>> => {
   const { query, values } = buildQueryForFilter(
     dAppId,
