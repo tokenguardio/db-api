@@ -134,6 +134,7 @@ interface ArgFilter {
 interface GetMetricsRequest {
   breakdown?: boolean;
   filters?: Filter[];
+  segmentId?: number;
 }
 interface Filter {
   name?: string;
@@ -156,11 +157,19 @@ const buildQueryForFilter = (
   dAppId: string,
   filter: Filter,
   breakdown: boolean,
-  metric: "wallets" | "interactions" | "transferredTokens"
+  metric: "wallets" | "interactions" | "transferredTokens",
+  segmentId?: number
 ): { query: string; values: any[] } => {
   const dapp_activity_table = `"dapp_analytics"."dapp_analytics_${dAppId}"`;
   const conditions: string[] = [];
   const values: any[] = [];
+
+  if (segmentId) {
+    const segment_members_table = `"dapp_analytics"."segment_members_${dAppId}"`;
+    const segmentQuery = `(SELECT user_address FROM ${segment_members_table} WHERE segment_id = ?)`;
+    conditions.push(`src.caller IN ${segmentQuery}`);
+    values.push(segmentId);
+  }
 
   if (filter.name) {
     conditions.push("src.name ILIKE ? ");
@@ -254,13 +263,15 @@ const getDataForFilter = async (
   dAppId: string,
   filter: Filter,
   breakdown: boolean,
-  metric: "wallets" | "interactions" | "transferredTokens"
+  metric: "wallets" | "interactions" | "transferredTokens",
+  segmentId?: number
 ): Promise<Map<string, Map<string, Set<string> | number>>> => {
   const { query, values } = buildQueryForFilter(
     dAppId,
     filter,
     breakdown,
-    metric
+    metric,
+    segmentId
   );
 
   try {
@@ -565,6 +576,7 @@ const intersectWalletsByDay = (
 
   return result;
 };
+
 export const getUniqueWallets = async (
   dAppId: string,
   body: GetMetricsRequest
@@ -574,10 +586,11 @@ export const getUniqueWallets = async (
       ? body.filters
       : [{ name: null, type: null, args: {} }];
   const breakdown = body.breakdown || false;
+  const segmentId = body.segmentId;
 
   const filterResults = await Promise.all(
     filters.map((filter) =>
-      getDataForFilter(dAppId, filter, breakdown, "wallets")
+      getDataForFilter(dAppId, filter, breakdown, "wallets", segmentId)
     )
   );
 
@@ -596,10 +609,11 @@ export const getInteractions = async (
       ? body.filters
       : [{ name: null, type: null, args: {} }];
   const breakdown = body.breakdown || false;
+  const segmentId = body.segmentId;
 
   const filterResults = await Promise.all(
     filters.map((filter) =>
-      getDataForFilter(dAppId, filter, breakdown, "interactions")
+      getDataForFilter(dAppId, filter, breakdown, "interactions", segmentId)
     )
   );
 
@@ -618,10 +632,17 @@ export const getTransferredTokens = async (
       ? body.filters
       : [{ name: null, type: null, args: {} }];
   const breakdown = body.breakdown || false;
+  const segmentId = body.segmentId;
 
   const filterResults = await Promise.all(
     filters.map((filter) =>
-      getDataForFilter(dAppId, filter, breakdown, "transferredTokens")
+      getDataForFilter(
+        dAppId,
+        filter,
+        breakdown,
+        "transferredTokens",
+        segmentId
+      )
     )
   );
 

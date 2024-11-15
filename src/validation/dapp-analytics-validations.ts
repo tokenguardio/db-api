@@ -164,6 +164,7 @@ export const dappDataMetricsValidation = {
         ),
       })
     ),
+    segmentId: Joi.number(),
   }),
 };
 
