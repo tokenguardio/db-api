@@ -11,16 +11,16 @@ ingressInternal:
   enabled: true
   name: db-api-ingress-internal
   rules:
-    - host: db-api.prod.tokenguard.io       
+    - host: db-api.prod.patterns.build
       http:
-        paths:        
-        - backend:
-            service:
-              name: db-api
-              port:
-                number: 8082
-          path: /
-          pathType: Prefix
+        paths:
+          - backend:
+              service:
+                name: db-api
+                port:
+                  number: 8082
+            path: /
+            pathType: Prefix
 
 dbapi:
   deployment:
@@ -29,13 +29,12 @@ dbapi:
       pullPolicy: Always
       tag: "f1138de09a2ad15969b8a149cff4f3b2a6d41d9f"
     replicaCount: 1
-    env: 
+    env:
       NODE_ENV: "production"
-    resources: 
+    resources:
       requests:
-        memory: "256Mi" 
+        memory: "256Mi"
         cpu: "200m"
       limits:
         memory: "2Gi"
-        cpu: "2000m"   
-
+        cpu: "2000m"

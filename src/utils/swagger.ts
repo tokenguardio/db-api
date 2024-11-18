@@ -12,7 +12,7 @@ const swaggerDefinition = {
       description: "Localhost development server",
     },
     {
-      url: "https://db-api.dev.tokenguard.io",
+      url: "https://db-api.dev.patterns.build",
       description: "Dev environment server",
     },
     // jrojek: todo. Just use host on which the server is visible or env var to substitute the value here
