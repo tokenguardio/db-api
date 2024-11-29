@@ -170,7 +170,6 @@ export const executeQuery = async (
         });
       }
     }
-
     // Validate names of provided identifiers
     for (const savedIdentifier of savedIdentifiers) {
       const providedIdentifier = providedIdentifiers.find(
@@ -196,7 +195,6 @@ export const executeQuery = async (
     if (error) {
       return res.status(400).json({ message: error });
     }
-
     const result = await dataDbQueryService.executeQuery(
       selectedDatabase,
       sqlQuery,

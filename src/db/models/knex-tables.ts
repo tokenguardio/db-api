@@ -11,7 +11,17 @@ import {
   type DappsInitializer,
   type DappsMutator,
   type default as Dapps,
-} from "../models/dapp_analytics/Dapps";
+} from "./dapp_analytics/Dapps";
+import {
+  type SegmentInitializer,
+  type SegmentMutator,
+  type default as Segment,
+} from "./dapp_analytics/Segment";
+import {
+  type SegmentMembersInitializer,
+  type SegmentMembersMutator,
+  type default as SegmentMembers,
+} from "./dapp_analytics/SegmentMembers";
 
 declare module "knex/types/tables" {
   interface Tables {
@@ -21,5 +31,15 @@ declare module "knex/types/tables" {
       QueriesMutator
     >;
     dapps: Knex.CompositeTableType<Dapps, DappsInitializer, DappsMutator>;
+    "segment_408f7d49-7ac7-478d-83c7-e2544821dbd4": Knex.CompositeTableType<
+      Segment,
+      SegmentInitializer,
+      SegmentMutator
+    >;
+    "segment_members_408f7d49-7ac7-478d-83c7-e2544821dbd4": Knex.CompositeTableType<
+      SegmentMembers,
+      SegmentMembersInitializer,
+      SegmentMembersMutator
+    >;
   }
 }

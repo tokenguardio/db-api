@@ -11,6 +11,7 @@ import queryRoutes from "./routes/query";
 import databaseInfoRoutes from "./routes/databaseInfo";
 import chartDataRouters from "./routes/chartData";
 import dappAnalyticsRoutes from "./routes/dapp-analytics";
+import segmentsRoutes from "./routes/segments";
 import logger from "./utils/logger";
 import { ApiError } from "./middleware/joiValidate";
 
@@ -52,6 +53,7 @@ app.use(queryRoutes);
 app.use(databaseInfoRoutes);
 app.use(chartDataRouters);
 app.use(dappAnalyticsRoutes);
+app.use(segmentsRoutes);
 
 app.use((err: ApiError, req: Request, res: Response, next: NextFunction) => {
   const statusCode = err.statusCode || 500;

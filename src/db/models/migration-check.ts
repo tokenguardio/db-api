@@ -4,7 +4,7 @@
 import { Knex } from 'knex';
 
 /** This is the migration that was set when the types were generated. */
-export const sourceMigration = '20240125215135_queries.ts';
+export const sourceMigration = '20241019112615_update_dapps_table.ts';
 
 /** Gets the migration in the live database */
 export const getCurrentMigration = async (knex: Knex): Promise<string> => {

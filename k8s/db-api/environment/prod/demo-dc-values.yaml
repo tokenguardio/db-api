@@ -11,16 +11,16 @@ ingressInternal:
   enabled: true
   name: demo-dc-db-api-ingress-internal
   rules:
-    - host: demo-dc-db-api.prod.tokenguard.io       
+    - host: demo-dc-db-api.prod.patterns.build
       http:
-        paths:        
-        - backend:
-            service:
-              name: demo-dc-db-api
-              port:
-                number: 8082
-          path: /
-          pathType: Prefix
+        paths:
+          - backend:
+              service:
+                name: demo-dc-db-api
+                port:
+                  number: 8082
+            path: /
+            pathType: Prefix
 
 dbapi:
   deployment:
@@ -30,19 +30,19 @@ dbapi:
       pullPolicy: Always
       tag: "a86cce991269bcaf81364a641c1b8fa2af3fdc25"
     replicaCount: 1
-    env: 
+    env:
       NODE_ENV: "production"
-    resources: 
+    resources:
       requests:
-        memory: "256Mi" 
+        memory: "256Mi"
         cpu: "200m"
       limits:
         memory: "2Gi"
         cpu: "2000m"
-  service: 
+  service:
     name: demo-dc-db-api
   configmap:
     name: demo-dc-db-api
 
-secrets: 
+secrets:
   name: demo-dc-db-api-secrets

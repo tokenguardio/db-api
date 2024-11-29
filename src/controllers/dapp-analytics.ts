@@ -6,7 +6,7 @@ export const saveDapp = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const { name, logo, blockchain, website, fromBlock, addedBy, abis } =
+    const { name, logo, blockchain, website, fromBlock, addedBy, abis, airdropContract, airdropCurrencyContract } =
       req.body;
     const createdDapp = await dappService.saveDapp({
       name,
@@ -16,6 +16,8 @@ export const saveDapp = async (
       from_block: fromBlock,
       added_by: addedBy,
       abis,
+      airdrop_contract: airdropContract,
+      airdrop_currency_contract: airdropCurrencyContract,
     });
 
     return res.status(201).json({
